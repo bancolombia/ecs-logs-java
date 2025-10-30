@@ -1,0 +1,68 @@
+{
+	"info": {
+		"_postman_id": "5fe6c2b7-2fef-41a4-bacd-a4bad6b570a8",
+		"name": "ECS_Reactive_Library",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46690872",
+		"_collection_link": "https://fabian-1470987.postman.co/workspace/Fabian's-Workspace~4e001a18-86ad-4836-88d8-67d52523cd86/collection/46690872-5fe6c2b7-2fef-41a4-bacd-a4bad6b570a8?action=share&source=collection_link&creator=46690872"
+	},
+	"item": [
+		{
+			"name": "RectiveExampleECS",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "relations-identifier",
+						"value": "RELSDASDASDS",
+						"type": "text"
+					},
+					{
+						"key": "aid-creator",
+						"value": "A8A77339260DA412B8238F21BBC1CF398",
+						"type": "text"
+					},
+					{
+						"key": "code",
+						"value": "NEG",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "{{Content-Type}}",
+						"type": "text"
+					},
+					{
+						"key": "message-id",
+						"value": "{{$guid}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"data\":{\r\n       \"identification\": {\r\n        \"number\":\"65841236\"\r\n       }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/getClient",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"getClient"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

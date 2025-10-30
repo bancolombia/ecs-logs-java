@@ -1,0 +1,6 @@
+dependencies {}
+
+ext {
+    artifactId = 'ecs-model'
+    artifactDescription = 'ECS Model'
+}

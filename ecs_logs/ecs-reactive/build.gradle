@@ -1,0 +1,26 @@
+dependencies {
+    // Core dependencies
+    api project(':ecs-model')
+    api project(':ecs-core')
+
+    // Reactive dependencies (optional for WebFlux users)
+    implementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}") {
+        // Exclude to minimize transitive dependencies if not needed
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
+    }
+
+    // Spring configuration
+    implementation("org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}") {
+        // Exclude to minimize transitive dependencies if not needed
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
+    }
+
+    // Reactor project
+    implementation "io.projectreactor:reactor-core:${reactorVersion}"
+    testImplementation "io.projectreactor:reactor-test:${reactorVersion}"
+}
+
+ext {
+    artifactId = 'ecs-reactive'
+    artifactDescription = 'ECS Adapter Reactive'
+}

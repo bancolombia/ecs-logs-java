@@ -1,0 +1,207 @@
+openapi: 3.0.3
+info:
+  title: Documentación Swagger del proyecto ecs_logs_reactive_tests
+  description: |
+    Esta es una documentación de los servicios expuestos por el microservicio.
+    
+    Puedes encontrar la colección de Postman en:
+    `/deployment/apiDoc/ECS_Reactive_Library.postman_collection.json`
+  version: 1.0.0
+
+paths:
+  /getClient:
+    post:
+      tags:
+        - Servicio de pruebas
+      summary: Consulta de clientes por identificación.
+      description: Esta operación permite la consulta de clientes apartir de un numero de identificación.
+      parameters:
+        - name: relations-identifier
+          in: header
+          description: Identificador de relacion del usuario que está ejecutando la acción
+          required: true
+          schema:
+            type: string
+        - name: aid-creator
+          in: header
+          description: Usuario que está ejecutando la acción
+          required: true
+          schema:
+            type: string
+        - name: message-id
+          in: header
+          description: Identificador unicio para identificar la petición
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: code
+          in: header
+          description: Código que identifica un canal
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Consultar cliente
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getClientRequestBody'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getClientSuccess'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400Errors'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '#/components/schemas/basicMeta'
+                  errors:
+                    type: array
+                    items:
+                      anyOf:
+                        -  $ref: '#/components/schemas/409-51-exception'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/500Errors'
+
+components:
+  schemas:
+    basicMeta:
+      type: object
+      properties:
+        _messageId:
+          type: string
+          example: f15e2e14-af48-4ae1-b3bd-61fe67923fe8
+        _requestDateTime:
+          type: string
+          example: 10/05/2024 16:25:31:4130
+
+    500-01-exception:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SPER500-01
+        detail:
+          type: string
+          example: Ha ocurrido un error interno en el servicio
+    400-01-exception:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SAER400-01
+        detail:
+          type: string
+          example: Faltan cabeceras obligatorias
+    400-03-exception:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SAER400-03
+        detail:
+          type: string
+          example: Faltan parámetros obligatorios.
+    400-35-exception:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SAER400-35
+        detail:
+          type: string
+          example: Uno o más datos no poseen un valor válido
+    409-51-exception:
+      type: object
+      properties:
+        code:
+          type: string
+          example: BPER409-51
+        detail:
+          type: string
+          example: Registro no encontrado
+    400Errors:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/basicMeta'
+        errors:
+          type: array
+          items:
+            anyOf:
+              -  $ref: '#/components/schemas/400-01-exception'
+              -  $ref: '#/components/schemas/400-03-exception'
+              -  $ref: '#/components/schemas/400-35-exception'
+    500Errors:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/basicMeta'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/500-01-exception'
+    getClientRequestBody:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - identification
+          properties:
+            identification:
+              type: object
+              description: Objeto que representa la identificación de un cliente
+              required:
+                - number
+              properties:
+                number:
+                  type: string
+                  description: Numero de identificación
+                  example: 2400001
+
+    getClientSuccess:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/basicMeta'
+        data:
+          required:
+            - identification
+            - clientName
+            - address
+            - city
+          properties:
+            identification:
+              description: Objeto que representa la identificacion del cliente
+              example: "5462145"
+            clientName:
+              description: Objeto que representa el nombre del cliente
+              example: "Jane"
+            address:
+              description: Objeto que representa la direccion del cliente
+              example: "2"
+            city:
+              description: Objeto que representa la ciudad del cliente
+              example: "Medellin"
+

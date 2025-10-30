@@ -1,0 +1,36 @@
+##Spring Configuration
+server:
+  port: 8080
+spring:
+  application:
+    name: ecs_logs_test
+  devtools:
+    add-properties: false
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  profiles:
+    include:
+adapter:
+  ecs:
+    logs:
+      request:
+        replacement: ""
+        patterns: ""
+        delimiter: ""
+        fields: ""
+        allow-headers: ""
+        excluded-paths: "/actuator"
+        show: true
+      response:
+        replacement: ""
+        delimiter: ""
+        fields: ""
+        patterns: ""
+        show: true
+      sampling:
+        rules20XJson: ""
+        rules40XJson: ""
+      sensitive-rules:
+        sensitive-data: ""

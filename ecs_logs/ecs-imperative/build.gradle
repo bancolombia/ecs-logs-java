@@ -1,0 +1,24 @@
+dependencies {
+    // Core dependencies
+    api project(':ecs-model')
+    api project(':ecs-core')
+
+    // Imperative dependencies (optional for Spring Web users)
+    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
+        // Exclude to minimize transitive dependencies if not needed
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
+    }
+
+    // Spring configuration
+    implementation("org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}") {
+        // Exclude to minimize transitive dependencies if not needed
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
+    }
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+}
+
+ext {
+    artifactId = 'ecs-imperative'
+    artifactDescription = 'ECS Adapter Imperative'
+}

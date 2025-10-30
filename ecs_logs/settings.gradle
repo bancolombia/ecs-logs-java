@@ -1,0 +1,16 @@
+pluginManagement {
+    repositories {
+        maven { url "https://artifactory.apps.bancolombia.com/maven-bancolombia" }
+    }
+}
+
+rootProject.name = 'EcsLogs'
+
+include ':ecs-core'
+include ':ecs-model'
+include ':ecs-imperative'
+include ':ecs-reactive'
+project(':ecs-core').projectDir = file('./ecs-core')
+project(':ecs-model').projectDir = file('./ecs-model')
+project(':ecs-imperative').projectDir = file('./ecs-imperative')
+project(':ecs-reactive').projectDir = file('./ecs-reactive')

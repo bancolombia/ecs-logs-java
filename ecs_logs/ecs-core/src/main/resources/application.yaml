@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: "ecs_logs"
+  ecs:
+    logs:
+      request:
+        replacement: ""
+        patterns: ""
+        delimiter: "\\|"
+        fields: ""
+        allow-headers: ""
+        excluded-paths: "/actuator"
+        show: false
+      response:
+        replacement: ""
+        delimiter: "\\|"
+        fields: ""
+        patterns: ""
+        show: false
+      sampling:
+        rules20XJson: ""
+        rules40XJson: ""
+      sensitive-rules:
+        sensitive-data: ""

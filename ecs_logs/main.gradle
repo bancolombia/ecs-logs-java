@@ -1,0 +1,180 @@
+apply plugin: 'info.solidsoft.pitest.aggregator'
+
+allprojects {
+    apply from: "${rootDir}/dependencyMgmt.gradle"
+    apply plugin: 'java'
+
+    repositories {
+        maven { url "https://artifactory.apps.bancolombia.com/maven-bancolombia" }
+    }
+}
+
+subprojects {
+    apply plugin: 'co.com.bancolombia.cleanArchitecture'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'info.solidsoft.pitest'
+    apply plugin: 'maven-publish'
+    apply plugin: 'java-library'
+    apply plugin: 'jacoco'
+
+    ext {
+        groupId = project.findProperty('groupId') ?: 'co.com.bancolombia'
+        version = project.findProperty("version") ?: "0.0.0"
+        user = project.findProperty('usuario') ?: ''
+        psw = project.findProperty('clave') ?: ''
+    }
+
+    group = groupId
+    version = version
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    dependencies {
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    }
+
+    test.finalizedBy(project.tasks.jacocoTestReport)
+
+    pitest {
+        targetClasses = ['co.com.bancolombia.*']
+        excludedClasses = [
+                'co.com.bancolombia.ecs.domain.middleware.*',
+                'co.com.bancolombia.ecs.infra.config.*'
+        ]
+        excludedTestClasses = [
+                'co.com.bancolombia.ecs.domain.middleware.*',
+                'co.com.bancolombia.ecs.infra.config.*'
+        ]
+        pitestVersion = '1.17.1'
+        verbose = false
+        outputFormats = ['XML', 'HTML']
+        threads = 8
+        exportLineCoverage = true
+        useClasspathFile = true
+        timestampedReports = false
+        fileExtensionsToFilter.addAll('xml', 'orbit')
+        junit5PluginVersion = '1.2.1'
+        failWhenNoMutations = false
+        jvmArgs = ["-XX:+AllowRedefinitionToAddDeleteMethods"]
+    }
+
+    jacocoTestReport {
+        dependsOn = [test, 'pitest']
+        reports {
+            xml.required.set(true)
+            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco.xml"))
+            csv.required.set(false)
+            html.outputLocation.set(layout.buildDirectory.dir("reports/jacocoHtml"))
+        }
+    }
+
+    tasks.named('jar') {
+        enabled = true
+
+        archiveClassifier.set('')
+        archiveBaseName.set(project.name)
+        archiveVersion.set(version)
+
+        manifest {
+            attributes(
+                    'Implementation-Title': project.name,
+                    'Implementation-Version': version
+            )
+        }
+    }
+
+    javadoc {
+        if (JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+        failOnError = false
+    }
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        enabled = false
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = project.group
+                artifactId = project.name
+                version = project.version
+                from components.java
+            }
+        }
+        repositories {
+            maven {
+                url 'https://artifactory.apps.bancolombia.com/maven-bancolombia'
+                credentials {
+                    username = user
+                    password = psw
+                }
+            }
+        }
+    }
+}
+
+jacoco {
+    toolVersion = jacocoVersion
+    reportsDirectory.set(layout.buildDirectory.dir("reports"))
+}
+
+tasks.register('jacocoMergedReport', JacocoReport) {
+    dependsOn = [
+            test,
+            subprojects.test,
+            subprojects.javadoc,
+            subprojects.jacocoTestReport,
+            pitestReportAggregate
+    ].flatten()
+    additionalSourceDirs.setFrom files(subprojects*.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(subprojects*.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(subprojects*.sourceSets.main.output)
+    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Amapstruct.suppressGeneratorTimestamp=true']
+}
+
+pitestReportAggregate {
+    doLast {
+        def reportDir = layout.buildDirectory.dir("reports/pitest").get().asFile
+        def consolidatedReport = new File(reportDir, 'mutations.xml')
+        consolidatedReport.withWriter { writer ->
+            writer.write("<mutations>\n")
+            subprojects.each { subproject ->
+                def xmlReport = subproject.layout.buildDirectory.file("reports/pitest/mutations.xml").get().asFile
+                if (xmlReport.exists()) {
+                    def xmlContent = xmlReport.text
+                    xmlContent = xmlContent.replaceAll("<\\?xml[^>]*>", "")
+                    xmlContent = xmlContent.replaceAll("</?mutations( partial=\"true\")?>", "")
+                    writer.write(xmlContent.trim() + "\n")
+                }
+            }
+            writer.write("</mutations>")
+        }
+    }
+}
+
+tasks.named('wrapper') {
+    gradleVersion = '8.13'
+}

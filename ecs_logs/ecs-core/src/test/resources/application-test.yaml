@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: "ecs_logs"
+adapter:
+  ecs:
+    logs:
+      request:
+        replacement: ""
+        patterns: ""
+        delimiter: "\\|"
+        fields: ""
+        allow-headers: ""
+        excluded-paths: "/actuator"
+        show: false
+      response:
+        replacement: ""
+        delimiter: "\\|"
+        fields: ""
+        patterns: ""
+        show: false
+      sampling:
+        rules20XJson: >
+          [{"uri":"/actors/createCustomerParameters","responseCode":"200","showCount":3,"skipCount":2,"errorCodes""},
+          {"uri":"/actors/updateCustomer","responseCode":"200","showCount":2,"skipCount":2}]
+      sensitive-rules:
+        sensitive-data: '[
+                  {
+                    "uriPattern": "/v2/retrieve-detail","maskingChar": ".",
+                    "fieldPaths": [
+                      "additionalInfo.requestBody.data.flow.status[*]"
+                    ],
+                    "maskingType": "FULL",
+                    "enabled": true
+                  },
+                  {
+                    "uriPattern": "/v2/retrieve-detail",
+                    "fieldPaths": [
+                      "messageId"
+                    ],
+                    "maskingType": "PARTIAL",
+                    "enabled": true,
+                    "maskingChar": "*",
+                    "visibilityPercentage": 0.3
+                  },
+                  {
+                    "uriPattern": "/retrieve-approvers",
+                    "fieldPaths": [
+                      "messageId",
+                      "additionalInfo.responseBody.data.approversDetail[*].relations.identifier",
+                      "additionalInfo.requestBody.data.flowApprovers.currency",
+                      "identifier"
+                    ],
+                    "maskingType": "CUSTOM",
+                    "enabled": true,
+                    "customMask": "[WARNING]"
+                  },
+                  {
+                    "uriPattern": "/v2/retrieve-approvers",
+                    "fieldPaths": [
+                      "messageId",
+                      "meta._messageId"
+                    ],
+                    "maskingType": "REMOVE",
+                    "enabled": true
+                  }
+                ]'

@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: NU0141001_Library_MR_ecs_logs
+  title: NU0141001_Library_MR_ecs_logs
+  description: NU0141001_Library_MR_ecs_logs
+  namespace: default
+
+  annotations:
+    dev.azure.com/project-repo: b267af7c-3233-4ad1-97b3-91083943100d/NU0141001_Library_MR
+    sonarqube.org/project-key: NU0141001_Library_MR_ecs_logs
+    backstage.io/techdocs-ref: dir:.
+
+  labels:
+    dev.bancolombia.com/scaffold-type: java-clean-architecture
+  
+  links:
+    - url: https://dev.azure.com/GrupoBancolombia
+      title: Azure
+      icon: github
+
+spec:
+  type: service
+  lifecycle: production
+  owner: bancolombia
