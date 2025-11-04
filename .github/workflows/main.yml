@@ -1,0 +1,101 @@
+name: Java CI for ecs_logs Component
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+    paths:
+      - ecs_logs/**
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ecs_logs/**
+
+env:
+  COMPONENT_NAME: 'ecs_logs'
+  WORKING_DIR: ${{ github.workspace }}/ecs_logs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+      security-events: write
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Setup Gradle (with caching)
+      uses: gradle/actions/setup-gradle@v4
+    - name: Get Short Commit SHA for Version
+      id: short_sha
+      run: echo "version_tag=$(git describe --always --abbrev=8)" >> $GITHUB_OUTPUT
+    - name: Set Component Version for Main
+      id: set_version_trunk
+      if: github.ref == 'refs/heads/main'
+      run: echo "COMPONENT_VERSION=${{ steps.short_sha.outputs.version_tag }}" >> $GITHUB_ENV
+    - name: Set Component Version for Feature Branches
+      id: set_version_feature
+      if: startsWith(github.ref, 'refs/heads/feature/')
+      run: echo "COMPONENT_VERSION=${{ steps.short_sha.outputs.version_tag }}-SNAPSHOT" >> $GITHUB_ENV
+    - name: Grant execute permission for gradlew
+      run: chmod +x ${{ env.COMPONENT_NAME }}/gradlew
+    - name: Gradle Build and Quality Analysis
+      run: |
+        # Ejecutamos 'sonar' para replicar sonarQubeRunAnalysis: true
+        ./gradlew clean build jacocoMergedReport generatePomFileForMavenJavaPublication sonar -Pversion=${{ env.COMPONENT_VERSION }}
+      working-directory: ${{ env.COMPONENT_NAME }}
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: Publish Test Results to GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: ${{ env.COMPONENT_NAME }}/build/test-results/**/*.xml
+    - name: Publish Code Coverage (Codecov)
+      uses: codecov/codecov-action@v4
+      with:
+        files: ${{ env.COMPONENT_NAME }}/build/reports/jacocoMergedReport/jacocoMergedReport.xml
+        fail_ci_if_error: true
+        verbose: true
+    - name: Sonar Quality Gate Check
+      uses: sonarsource/sonarqube-build-breaker@v0.1
+    - name: Publish ecs-model Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ecs_logs_ecs-model
+        path: |
+          ${{ env.COMPONENT_NAME }}/ecs-model/build/libs/*.jar
+          ${{ env.COMPONENT_NAME }}/ecs-model/build/publications/mavenJava/*.xml
+    - name: Publish ecs-core Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ecs_logs_ecs-core
+        path: |
+          ${{ env.COMPONENT_NAME }}/ecs-core/build/libs/*.jar
+          ${{ env.COMPONENT_NAME }}/ecs-core/build/publications/mavenJava/*.xml
+    - name: Publish ecs-reactive Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ecs_logs_ecs-reactive
+        path: |
+          ${{ env.COMPONENT_NAME }}/ecs-reactive/build/libs/*.jar
+          ${{ env.COMPONENT_NAME }}/ecs-reactive/build/publications/mavenJava/*.xml
+    - name: Publish ecs-imperative Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ecs_logs_ecs-imperative
+        path: |
+          ${{ env.COMPONENT_NAME }}/ecs-imperative/build/libs/*.jar
+          ${{ env.COMPONENT_NAME }}/ecs-imperative/build/publications/mavenJava/*.xml
