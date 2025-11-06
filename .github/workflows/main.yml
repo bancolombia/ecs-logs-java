@@ -5,26 +5,27 @@ on:
     branches:
       - main
       - feature/*
-    paths:
-      - ecs_logs/**
+      - fix/*
 
   pull_request:
     branches:
       - main
-    paths:
-      - ecs_logs/**
 
 env:
   COMPONENT_NAME: 'ecs_logs'
-  WORKING_DIR: ${{ github.workspace }}/ecs_logs
 
 jobs:
+  
+      
   build:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: write
       security-events: write
+      pull-requests: write
 
     steps:
     - name: Checkout Repository
@@ -60,26 +61,26 @@ jobs:
       with:
         name: ecs_logs_ecs-model
         path: |
-          ${{ env.COMPONENT_NAME }}/ecs-model/build/libs/*.jar
-          ${{ env.COMPONENT_NAME }}/ecs-model/build/publications/mavenJava/*.xml
+          ecs-model/build/libs/*.jar
+          ecs-model/build/publications/mavenJava/*.xml
     - name: Publish ecs-core Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ecs_logs_ecs-core
         path: |
-          ${{ env.COMPONENT_NAME }}/ecs-core/build/libs/*.jar
-          ${{ env.COMPONENT_NAME }}/ecs-core/build/publications/mavenJava/*.xml
+          ecs-core/build/libs/*.jar
+          ecs-core/build/publications/mavenJava/*.xml
     - name: Publish ecs-reactive Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ecs_logs_ecs-reactive
         path: |
-          ${{ env.COMPONENT_NAME }}/ecs-reactive/build/libs/*.jar
-          ${{ env.COMPONENT_NAME }}/ecs-reactive/build/publications/mavenJava/*.xml
+          ecs-reactive/build/libs/*.jar
+          ecs-reactive/build/publications/mavenJava/*.xml
     - name: Publish ecs-imperative Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ecs_logs_ecs-imperative
         path: |
-          ${{ env.COMPONENT_NAME }}/ecs-imperative/build/libs/*.jar
-          ${{ env.COMPONENT_NAME }}/ecs-imperative/build/publications/mavenJava/*.xml
+          ecs-imperative/build/libs/*.jar
+          ecs-imperative/build/publications/mavenJava/*.xml
