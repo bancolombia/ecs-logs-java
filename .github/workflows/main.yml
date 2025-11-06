@@ -54,7 +54,7 @@ jobs:
 
       - name: Gradle Build and Generate Report
         run: |
-          ./gradlew clean build generateMergedReport -Pversion=${{ env.COMPONENT_VERSION }} \
+          ./gradlew clean build jacocoMergedReport -Pversion=${{ env.COMPONENT_VERSION }} \
           --refresh-dependencies --no-daemon --continue -Denv.ci=true
         
       - name: Sonar Analysis
