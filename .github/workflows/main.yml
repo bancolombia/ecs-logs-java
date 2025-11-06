@@ -57,28 +57,35 @@ jobs:
           ./gradlew clean build jacocoMergedReport -Pversion=${{ env.COMPONENT_VERSION }} \
           --refresh-dependencies --no-daemon --continue -Denv.ci=true
         
-      - name: Sonar Analysis
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event.pull_request.head.repo.fork == false
+      # - name: Sonar Analysis
+      #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event.pull_request.head.repo.fork == false
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: ./gradlew sonar --no-daemon -Denv.ci=true
+
+      # semantic release 
+      - name: Verify Conventional Commits
+        uses: amannn/action-semantic-pull-request@v6.1.1
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew sonar --no-daemon -Denv.ci=true
-        
       - name: Set up NodeJS
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-        uses: actions/setup-node@v4
+        if: github.ref == 'refs/heads/main'
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          
-      - name: Install Semantic Release
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-        run: npm -g install @semantic-release/git semantic-release@23.0.0
-        
+      - name: Set up Semantic Release
+        if: github.ref == 'refs/heads/main'
+        run: npm -g install @semantic-release/git semantic-release@25.0.01
       - name: Semantic Release
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-        run: npx semantic-release@23.0.0
+        if: github.ref == 'refs/heads/main'
+        run: npx semantic-release@25.0.1
         env:
-          GITHUB_TOKEN: ${{ secrets.PA_TOKEN }}
-          
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        
+
+
+      # Publis artifacor
       - name: Publish ecs-model Artifact
         uses: actions/upload-artifact@v4
         with:
