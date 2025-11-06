@@ -40,40 +40,35 @@ public class SamplingHelper {
     }
 
     public static boolean validatePrint(LogRecord<String, String> ex) {
-        if (ex.getAdditionalInfo() == null) return false;
+        boolean result = false;
+        if (ex.getAdditionalInfo() == null) return true;
 
         String uri = ex.getAdditionalInfo().getUri();
         String responseCode = ex.getAdditionalInfo().getResponseCode();
-        if (uri == null || responseCode == null) return false;
+        if (uri != null && responseCode != null) {
+            String key = responseCode.startsWith(START_CODE_40X)
+                    ? uri + "|" + getErrorCode(ex.getError().getType())
+                    : uri + "|" + responseCode;
 
-        String key;
+            if (!rules.containsKey(key)) {
+                return true;
+            }
 
-        if (responseCode.startsWith(START_CODE_40X)) {
-            key = uri + "|" + getErrorCode(ex.getError().getType());
-        } else {
-            key = uri + "|" + responseCode;
+            SamplingConfig.SamplingRule rule = rules.get(key);
+            int cycle = rule.getShowCount() + rule.getSkipCount();
+
+            incrementCounter(key);
+            long current = getCount(key);
+            long position = (current - 1) % cycle;
+
+            if (current >= cycle) {
+                counters.put(key, new LongAdder());
+            }
+
+            result = position < rule.getShowCount();
         }
 
-        if (!rules.containsKey(key)) {
-            return true;
-        }
-
-        SamplingConfig.SamplingRule rule = rules.get(key);
-        int show = rule.getShowCount();
-        int skip = rule.getSkipCount();
-
-        incrementCounter(key);
-
-        long current = getCount(key);
-
-        int cycle = show + skip;
-        long position = (current - 1) % cycle;
-
-        if (current >= cycle) {
-            counters.put(key, new LongAdder());
-        }
-
-        return position < show;
+        return result;
     }
 
     private String getErrorCode(String errorCode){

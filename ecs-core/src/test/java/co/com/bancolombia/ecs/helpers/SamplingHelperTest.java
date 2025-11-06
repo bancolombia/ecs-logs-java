@@ -65,7 +65,7 @@ class SamplingHelperTest {
     @Test
     void shouldReturnFalseWhenAdditionalInfoIsNull() {
         logRecord.setAdditionalInfo(null);
-        assertFalse(SamplingHelper.validatePrint(logRecord));
+        assertTrue(SamplingHelper.validatePrint(logRecord));
     }
 
     @Test

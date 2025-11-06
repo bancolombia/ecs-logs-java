@@ -23,4 +23,3 @@ public class LogRequest {
     private String responseResult;
     private String responseCode;
 }
-
