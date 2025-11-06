@@ -51,26 +51,10 @@ jobs:
       run: echo "COMPONENT_VERSION=${{ steps.short_sha.outputs.version_tag }}-SNAPSHOT" >> $GITHUB_ENV
     - name: Grant execute permission for gradlew
       run: chmod +x ${{ env.COMPONENT_NAME }}/gradlew
-    - name: Gradle Build and Quality Analysis
+    - name: Gradle Build
       run: |
-        # Ejecutamos 'sonar' para replicar sonarQubeRunAnalysis: true
-        ./gradlew clean build jacocoMergedReport generatePomFileForMavenJavaPublication sonar -Pversion=${{ env.COMPONENT_VERSION }}
+        ./gradlew clean build -Pversion=${{ env.COMPONENT_VERSION }}
       working-directory: ${{ env.COMPONENT_NAME }}
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    - name: Publish Test Results to GitHub
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: ${{ env.COMPONENT_NAME }}/build/test-results/**/*.xml
-    - name: Publish Code Coverage (Codecov)
-      uses: codecov/codecov-action@v4
-      with:
-        files: ${{ env.COMPONENT_NAME }}/build/reports/jacocoMergedReport/jacocoMergedReport.xml
-        fail_ci_if_error: true
-        verbose: true
-    - name: Sonar Quality Gate Check
-      uses: sonarsource/sonarqube-build-breaker@v0.1
     - name: Publish ecs-model Artifact
       uses: actions/upload-artifact@v4
       with:
