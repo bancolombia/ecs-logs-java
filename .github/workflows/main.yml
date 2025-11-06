@@ -53,20 +53,18 @@ jobs:
           java-version: 17
           
       - name: Grant execute permission for gradlew
-        run: chmod +x ${{ env.COMPONENT_NAME }}/gradlew
+        run: chmod +x ./gradlew 
 
       - name: Gradle Build and Generate Report
         run: |
           ./gradlew clean build generateMergedReport -Pversion=${{ env.COMPONENT_VERSION }} \
           --refresh-dependencies --no-daemon --continue -Denv.ci=true
-        working-directory: ${{ env.COMPONENT_NAME }}
         
       - name: Sonar Analysis
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event.pull_request.head.repo.fork == false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew sonar --no-daemon -Denv.ci=true
-        working-directory: ${{ env.COMPONENT_NAME }}
         
       - name: Set up NodeJS
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
@@ -84,27 +82,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PA_TOKEN }}
           
-      # --- Publicación de Artefactos ---
       - name: Publish ecs-model Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ecs_logs_ecs-model
-          path: ${{ env.COMPONENT_NAME }}/ecs-model/build/libs/*.jar
+          path: ecs-model/build/libs/*.jar
           
       - name: Publish ecs-core Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ecs_logs_ecs-core
-          path: ${{ env.COMPONENT_NAME }}/ecs-core/build/libs/*.jar
+          path: ecs-core/build/libs/*.jar
           
       - name: Publish ecs-reactive Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ecs_logs_ecs-reactive
-          path: ${{ env.COMPONENT_NAME }}/ecs-reactive/build/libs/*.jar
+          path: ecs-reactive/build/libs/*.jar
           
       - name: Publish ecs-imperative Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ecs_logs_ecs-imperative
-          path: ${{ env.COMPONENT_NAME }}/ecs-imperative/build/libs/*.jar
+          path: ecs-imperative/build/libs/*.jar
