@@ -1,6 +1,5 @@
 # Java ECS Library
 
-
 A comprehensive Java library that enables structured logging in ECS (Elastic Common Schema) format, providing standardized log output for better observability and monitoring in Java applications.
 
 ## **General description**
