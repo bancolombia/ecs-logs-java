@@ -147,22 +147,19 @@ jacoco {
     reportsDirectory.set(layout.buildDirectory.dir("reports"))
 }
 
-tasks.register('jacocoMergedReport', JacocoReport) {
-    dependsOn = [
-            test,
-            subprojects.test,
-            subprojects.javadoc,
-            subprojects.jacocoTestReport,
-            pitestReportAggregate
-    ].flatten()
-    additionalSourceDirs.setFrom files(subprojects*.sourceSets.main.allSource.srcDirs)
-    sourceDirectories.setFrom files(subprojects*.sourceSets.main.allSource.srcDirs)
-    classDirectories.setFrom files(subprojects*.sourceSets.main.output)
+tasks.register('generateMergedReport', JacocoReport) {
+    dependsOn test
+    dependsOn subprojects.test
+    dependsOn subprojects.javadoc
+    dependsOn subprojects.jacocoTestReport
+    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(subprojects.sourceSets.main.output)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
-        xml.required.set(true)
-        csv.required.set(false)
-        html.required.set(true)
+        xml.setRequired true
+        csv.setRequired false
+        html.setRequired true
     }
 }
 
