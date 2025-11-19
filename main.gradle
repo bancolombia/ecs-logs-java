@@ -64,6 +64,29 @@ subprojects {
         implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
 
+    pitest {
+        targetClasses = ['co.com.bancolombia.*']
+        excludedClasses = [
+                'co.com.bancolombia.ecs.domain.middleware.*',
+                'co.com.bancolombia.ecs.infra.config.*'
+        ]
+        excludedTestClasses = [
+                'co.com.bancolombia.ecs.domain.middleware.*',
+                'co.com.bancolombia.ecs.infra.config.*'
+        ]
+        pitestVersion = '1.17.1'
+        verbose = false
+        outputFormats = ['XML', 'HTML']
+        threads = 8
+        exportLineCoverage = true
+        useClasspathFile = true
+        timestampedReports = false
+        fileExtensionsToFilter.addAll('xml', 'orbit')
+        junit5PluginVersion = '1.2.1'
+        failWhenNoMutations = false
+        jvmArgs = ["-XX:+AllowRedefinitionToAddDeleteMethods"]
+    }
+
     test {
         useJUnitPlatform()
         testLogging {
@@ -75,7 +98,7 @@ subprojects {
 
 
     jacocoTestReport {
-        dependsOn test
+        dependsOn = [test, 'pitest']
         reports {
             xml.setRequired true
             xml.setOutputLocation layout.buildDirectory.file("reports/jacoco.xml")
