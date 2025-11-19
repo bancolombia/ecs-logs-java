@@ -166,6 +166,10 @@ tasks.register('jacocoMergedReport', JacocoReport) {
     }
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Amapstruct.suppressGeneratorTimestamp=true']
+}
+
 pitestReportAggregate {
     doLast {
         def reportDir = layout.buildDirectory.dir("reports/pitest").get().asFile
