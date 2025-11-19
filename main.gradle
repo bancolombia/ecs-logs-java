@@ -3,11 +3,14 @@ apply plugin: 'info.solidsoft.pitest.aggregator'
 allprojects {
     apply from: "${rootDir}/dependencyMgmt.gradle"
     apply plugin: 'java'
+    apply plugin: 'org.owasp.dependencycheck'
 
     repositories {
         gradlePluginPortal()
         mavenCentral()
     }
+
+    group 'com.github.bancolombia'
 }
 
 subprojects {
@@ -19,21 +22,36 @@ subprojects {
     apply plugin: 'jacoco'
 
     ext {
-        groupId = project.findProperty('groupId') ?: 'co.com.bancolombia'
+        groupId = 'com.github.bancolombia'
+        artifactId = project.name
         version = project.findProperty("version") ?: "0.0.0"
-        user = project.findProperty('usuario') ?: ''
-        psw = project.findProperty('clave') ?: ''
-    }
 
-    group = groupId
-    version = version
+        pomConfig = {
+            licenses {
+                license {
+                    name "MIT License"
+                    url "https://opensource.org/licenses/mit-license.php"
+                    distribution "repo"
+                }
+            }
+            developers {
+                developer {
+                    id "RicharLeon"
+                    name "Richar Daniel Diaz Leon"
+                    email "rleon97@hotmail.com"
+                }
+                developer {
+                    id "lectrapb"
+                    name "Giovanny Alexander Porras Barbosa"
+                    email "pbgiovanny@yahoo.com"
+                }
+            }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_17
-    }
-
-    test {
-        useJUnitPlatform()
+            scm {
+                url "git@github.com:bancolombia/ecs-logs-java.git"
+            }
+        }
+        groupId = 'com.github.bancolombia'
     }
 
     dependencies {
@@ -46,33 +64,18 @@ subprojects {
         implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
 
-    test.finalizedBy(project.tasks.jacocoTestReport)
-
-    pitest {
-        targetClasses = ['co.com.bancolombia.*']
-        excludedClasses = [
-                'co.com.bancolombia.ecs.domain.middleware.*',
-                'co.com.bancolombia.ecs.infra.config.*'
-        ]
-        excludedTestClasses = [
-                'co.com.bancolombia.ecs.domain.middleware.*',
-                'co.com.bancolombia.ecs.infra.config.*'
-        ]
-        pitestVersion = '1.17.1'
-        verbose = false
-        outputFormats = ['XML', 'HTML']
-        threads = 8
-        exportLineCoverage = true
-        useClasspathFile = true
-        timestampedReports = false
-        fileExtensionsToFilter.addAll('xml', 'orbit')
-        junit5PluginVersion = '1.2.1'
-        failWhenNoMutations = false
-        jvmArgs = ["-XX:+AllowRedefinitionToAddDeleteMethods"]
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
     }
 
+    test.finalizedBy(project.tasks.jacocoTestReport)
+
+
     jacocoTestReport {
-        dependsOn = [test, 'pitest']
+        dependsOn = [test, pitest]
         reports {
             xml.required.set(true)
             xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco.xml"))
@@ -81,19 +84,17 @@ subprojects {
         }
     }
 
-    tasks.named('jar') {
-        enabled = true
+    //    check.dependsOn dependencyCheckAggregate
 
-        archiveClassifier.set('')
-        archiveBaseName.set(project.name)
-        archiveVersion.set(version)
+    dependencyCheck {
+        format = 'JSON'
+        formats = ['JSON']
+    }
 
-        manifest {
-            attributes(
-                    'Implementation-Title': project.name,
-                    'Implementation-Version': version
-            )
-        }
+    java {
+        withJavadocJar()
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 
     javadoc {
@@ -103,20 +104,42 @@ subprojects {
         failOnError = false
     }
 
+    javadoc.failOnError = false
+
     tasks.withType(GenerateModuleMetadata).configureEach {
         enabled = false
     }
 
+    //Publishing configuration
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                groupId = project.group
-                artifactId = project.name
-                version = project.version
                 from components.java
+
+                groupId = groupId
+                artifactId = project.name
+                version =  project.findProperty("version") ?: "0.0.0"
+
+                artifact tasks.named('sourcesJar').get()
+                artifact tasks.named('javadocJar').get()
+
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('description', artifactDescription)
+                    root.appendNode('name', project.name)
+                    root.appendNode('url', 'https://github.com/bancolombia/ecs-logs-java')
+                    root.children().last() + pomConfig
+                }
             }
         }
     }
+
+    if (project.hasProperty('signing.keyId')) {
+        signing {
+            sign publishing.publications.mavenJava
+        }
+    }
+
 }
 
 jacoco {
@@ -140,30 +163,6 @@ tasks.register('jacocoMergedReport', JacocoReport) {
         xml.required.set(true)
         csv.required.set(false)
         html.required.set(true)
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['-Amapstruct.suppressGeneratorTimestamp=true']
-}
-
-pitestReportAggregate {
-    doLast {
-        def reportDir = layout.buildDirectory.dir("reports/pitest").get().asFile
-        def consolidatedReport = new File(reportDir, 'mutations.xml')
-        consolidatedReport.withWriter { writer ->
-            writer.write("<mutations>\n")
-            subprojects.each { subproject ->
-                def xmlReport = subproject.layout.buildDirectory.file("reports/pitest/mutations.xml").get().asFile
-                if (xmlReport.exists()) {
-                    def xmlContent = xmlReport.text
-                    xmlContent = xmlContent.replaceAll("<\\?xml[^>]*>", "")
-                    xmlContent = xmlContent.replaceAll("</?mutations( partial=\"true\")?>", "")
-                    writer.write(xmlContent.trim() + "\n")
-                }
-            }
-            writer.write("</mutations>")
-        }
     }
 }
 
