@@ -75,12 +75,12 @@ subprojects {
 
 
     jacocoTestReport {
-        dependsOn = [test, pitest]
+        dependsOn test
         reports {
-            xml.required.set(true)
-            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco.xml"))
-            csv.required.set(false)
-            html.outputLocation.set(layout.buildDirectory.dir("reports/jacocoHtml"))
+            xml.setRequired true
+            xml.setOutputLocation layout.buildDirectory.file("reports/jacoco.xml")
+            csv.setRequired false
+            html.setOutputLocation layout.buildDirectory.dir("reports/jacocoHtml")
         }
     }
 
