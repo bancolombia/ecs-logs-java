@@ -20,6 +20,7 @@ subprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'java-library'
     apply plugin: 'jacoco'
+    apply plugin: 'signing'
 
     ext {
         groupId = 'com.github.bancolombia'
