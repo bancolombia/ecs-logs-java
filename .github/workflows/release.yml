@@ -66,20 +66,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Prepare gpg key
-        run: |
-          mkdir -p ~/.gradle/
-          echo "${{secrets.SIGNING_KEY_FILE}}" | base64 -d > ~/.gradle/secring.gpg
-          
       - name: Publish Libraries
         shell: bash
         run: |
           set -euo pipefail
-          # Ejecutar gradle con propiedades entre comillas para evitar romper el shell
-          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
-            -Psigning.keyId="${{ secrets.SIGNING_KEY_ID }}" \
-            -Psigning.password="${{ secrets.SIGNING_KEY_PASSWORD }}" \
-            -Psigning.secretKeyRingFile="${HOME}/.gradle/secring.gpg"
+          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Psigning.keyId="${{ secrets.SIGNING_KEY_ID }}" -Psigning.password="${{ secrets.SIGNING_KEY_PASSWORD }}" -Psigning.secretKey="${{ secrets.SIGNING_KEY_FILE }}"
         env:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SECRET_MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SECRET_MAVEN_PASSWORD }}
