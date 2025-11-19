@@ -38,6 +38,7 @@ public class LogRecord<T, R> {
         var date = LocalDateTime.now(ZoneOffset.of("-05:00"));
         return date.format(DateTimeFormatter.ofPattern(DATE_FORMAT));
     }
+    
 
     public String toJson() {
         var objectMapper = new ObjectMapper();
