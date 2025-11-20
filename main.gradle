@@ -159,9 +159,15 @@ subprojects {
         def signingPassword = findProperty("signing.password")
         def signingKeyId = findProperty("signing.keyId")
         
+        if (signingKey != null) {
+        logger.lifecycle("Signing configured: keyId=${signingKeyId != null}, key present, password present")
+        }
+        
         if (signingKey && signingPassword) {
             useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
             sign publishing.publications.mavenJava
+        } else {
+            logger.warn("Signing not configured - missing key or password")
         }
     }
 
