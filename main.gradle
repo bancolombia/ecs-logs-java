@@ -128,8 +128,6 @@ subprojects {
         failOnError = false
     }
 
-    javadoc.failOnError = false
-
     tasks.withType(GenerateModuleMetadata).configureEach {
         enabled = false
     }
@@ -144,9 +142,6 @@ subprojects {
                 artifactId = project.name
                 version =  project.findProperty("version") ?: "0.0.0"
 
-                artifact tasks.named('sourcesJar').get()
-                artifact tasks.named('javadocJar').get()
-
                 pom.withXml {
                     def root = asNode()
                     root.appendNode('description', artifactDescription)
@@ -158,16 +153,15 @@ subprojects {
         }
     }
 
-    if (project.hasProperty('signing.keyId')) {
-        signing {
-            def signingKey = findProperty("signing.key")
-            def signingPassword = findProperty("signing.password")
-            def signingKeyId = findProperty("signing.keyId")
-            
-            if (signingKey && signingPassword) {
-                useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-                sign publishing.publications.mavenJava
-            }
+
+    signing {
+        def signingKey = findProperty("signing.key")
+        def signingPassword = findProperty("signing.password")
+        def signingKeyId = findProperty("signing.keyId")
+        
+        if (signingKey && signingPassword) {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+            sign publishing.publications.mavenJava
         }
     }
 
