@@ -159,15 +159,18 @@ subprojects {
         def signingPassword = findProperty("signing.password")
         def signingKeyId = findProperty("signing.keyId")
         
-        if (signingKey != null) {
-        logger.lifecycle("Signing configured: keyId=${signingKeyId != null}, key present, password present")
-        }
+        logger.lifecycle("=== SIGNING DEBUG [${project.name}] ===")
+        logger.lifecycle("signingKeyId: ${signingKeyId != null ? 'present' : 'missing'}")
+        logger.lifecycle("signingKey: ${signingKey != null ? 'present (' + signingKey.toString().length() + ' chars)' : 'missing'}")
+        logger.lifecycle("signingPassword: ${signingPassword != null ? 'present' : 'missing'}")
         
-        if (signingKey && signingPassword) {
+        if (signingKey && signingPassword && !signingKey.toString().trim().isEmpty()) {
+            logger.lifecycle("✅ Configuring GPG signing for ${project.name}")
             useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
             sign publishing.publications.mavenJava
+            logger.lifecycle("✅ Signing ENABLED for ${project.name}")
         } else {
-            logger.warn("Signing not configured - missing key or password")
+            logger.warn("⚠️  Signing DISABLED for ${project.name}")
         }
     }
 
