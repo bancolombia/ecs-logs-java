@@ -153,25 +153,14 @@ subprojects {
         }
     }
 
-
-    signing {
-        def signingKey = findProperty("signing.key")
-        def signingPassword = findProperty("signing.password")
-        def signingKeyId = findProperty("signing.keyId")
-
-        logger.lifecycle("=== SIGNING DEBUG [${project.name}] ===")
-        logger.lifecycle("signingKeyId: ${signingKeyId != null ? 'present' : 'missing'}")
-        logger.lifecycle("signingKey: ${signingKey != null ? 'present (' + signingKey.toString().length() + ' chars)' : 'missing'}")
-        logger.lifecycle("signingPassword: ${signingPassword != null ? 'present' : 'missing'}")
-
-        if (project.hasProperty('signing.keyId')) {
-            signing {
-                sign publishing.publications.mavenJava
-            }
-        }
+    def validation = project.hasProperty('signing.keyId');
+     logger.lifecycle("=== VALIDATIONNNNNNN [${validation}] ===")
     
+    if (project.hasProperty('signing.keyId')) {
+        signing {
+            sign publishing.publications.mavenJava
+        }
     }
-
 }
 
 jacoco {
