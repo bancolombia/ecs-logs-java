@@ -158,6 +158,7 @@ subprojects {
     
     if (project.hasProperty('signing.keyId')) {
         signing {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
             sign publishing.publications.mavenJava
         }
     }
