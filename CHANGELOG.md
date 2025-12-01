@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.0.2](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.2) (2025-12-01)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.1...v1.0.2)
+
+**Merged pull requests:**
+
+- fix: Update signing configuration to use environment variables skip ci [\#8](https://github.com/bancolombia/ecs-logs-java/pull/8) ([RicharLeon](https://github.com/RicharLeon))
+- Refactor signing key handling in release workflow skip ci [\#7](https://github.com/bancolombia/ecs-logs-java/pull/7) ([RicharLeon](https://github.com/RicharLeon))
+
 ## [v1.0.1](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.1) (2025-12-01)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.0...v1.0.1)
