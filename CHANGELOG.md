@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.0.1](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.1) (2025-12-01)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.0...v1.0.1)
+
+**Merged pull requests:**
+
+- fix: Refactor signing configuration in main.gradle skip ci [\#6](https://github.com/bancolombia/ecs-logs-java/pull/6) ([RicharLeon](https://github.com/RicharLeon))
+
 ## [v1.0.0](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.0) (2025-11-21)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/872adc9f6b335b2464d655a2997fcd20aba920aa...v1.0.0)
