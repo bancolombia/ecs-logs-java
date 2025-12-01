@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.0.3](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.3) (2025-12-01)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.2...v1.0.3)
+
 ## [v1.0.2](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.2) (2025-12-01)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.1...v1.0.2)
