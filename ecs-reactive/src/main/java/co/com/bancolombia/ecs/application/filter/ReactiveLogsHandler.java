@@ -57,7 +57,7 @@ public class ReactiveLogsHandler implements WebFilter {
         }
 
         String path = exchange.getRequest().getURI().getPath();
-        if (ecsPropertiesConfig.getExcludedPaths().stream().anyMatch(path::startsWith)) {
+        if (showRequestLogs && ecsPropertiesConfig.getExcludedPaths().stream().anyMatch(path::startsWith)) {
             return chain.filter(exchange);
         }
 
