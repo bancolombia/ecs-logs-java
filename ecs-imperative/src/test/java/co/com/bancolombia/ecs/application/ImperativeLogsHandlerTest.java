@@ -55,11 +55,13 @@ class ImperativeLogsHandlerTest {
     private ContentCachingRequestWrapper wrappedRequest;
     private ContentCachingResponseWrapper wrappedResponse;
 
+    private static final int MAX_PAYLOAD_SIZE = 1024 * 1024;
+
     @BeforeEach
     void setUp() {
         mockRequest = new MockHttpServletRequest();
         mockResponse = new MockHttpServletResponse();
-        wrappedRequest = new ContentCachingRequestWrapper(mockRequest);
+        wrappedRequest = new ContentCachingRequestWrapper(mockRequest, MAX_PAYLOAD_SIZE);
         wrappedResponse = new ContentCachingResponseWrapper(mockResponse);
         imperativeLogsHandler = new ImperativeLogsHandler(ecsPropertiesConfig);
     }
