@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.0.0](https://github.com/bancolombia/ecs-logs-java/tree/v2.0.0) (2026-02-17)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.1...v2.0.0)
+
+**Merged pull requests:**
+
+- feat!: update spring boot to 4.0.2 and java 21 [\#11](https://github.com/bancolombia/ecs-logs-java/pull/11) ([avendanodanny](https://github.com/avendanodanny))
+
 ## [v1.0.1](https://github.com/bancolombia/ecs-logs-java/tree/v1.0.1) (2025-12-01)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.0...v1.0.1)
