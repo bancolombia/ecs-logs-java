@@ -16,6 +16,8 @@ dependencies {
     }
 
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+
+    implementation "com.fasterxml.jackson.core:jackson-databind"
 }
 
 ext {

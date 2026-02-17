@@ -16,7 +16,7 @@ The library is composed of four main modules:
 
 ## **Prerequisites**
 
-**Java:** Version 17 or higher.
+**Java:** Version 21 or higher.
 **Gradle:** For dependency management.
 
 ## Getting Started
@@ -71,8 +71,8 @@ subprojects {
 	compileJava.dependsOn validateStructure  
 
 	java {  
-	   sourceCompatibility = JavaVersion.VERSION_17  
-	   targetCompatibility = JavaVersion.VERSION_17  
+	   sourceCompatibility = JavaVersion.VERSION_21  
+	   targetCompatibility = JavaVersion.VERSION_21  
 	}  
 
 	//build.dependsOn 'pitest'  

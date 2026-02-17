@@ -1,8 +1,7 @@
 buildscript {
     ext {
-        cleanArchitectureVersion = '3.20.15'
-        springBootVersion = '3.5.5'
-        springCoreVersion = '6.2.11'
+        cleanArchitectureVersion = '4.0.4'
+        springBootVersion = '4.0.2'
         sonarVersion = '6.0.1.5171'
         jacocoVersion = '0.8.12'
         pitestVersion = '1.15.0'
@@ -13,6 +12,8 @@ buildscript {
         log4jVersion = '2.24.3'
         commonslang3= '3.18.0'
         nettyVersion = '4.1.127.Final'
+        logbackVersion = '1.5.19'
+        tomcatEmbedCoreVersion = "10.1.47"
     }
 
 }

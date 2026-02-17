@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ImperativeLogsHandler extends OncePerRequestFilter {
+    private static final int MAX_PAYLOAD_SIZE = 1024 * 1024;
     private static final Set<String> CONSUMER_ACRONYMS = Set.of("consumer-acronym", "code", "channel");
     private static final String HANDLED_EXCEPTION_PROPERTY = "handledException";
     private static final int MIN_REQUEST_ERROR_CODE = 400;
@@ -69,7 +70,7 @@ public class ImperativeLogsHandler extends OncePerRequestFilter {
             return;
         }
 
-        var wrappedRequest = new ContentCachingRequestWrapper(request);
+        var wrappedRequest = new ContentCachingRequestWrapper(request, MAX_PAYLOAD_SIZE);
         var wrappedResponse = new ContentCachingResponseWrapper(response);
 
         try {

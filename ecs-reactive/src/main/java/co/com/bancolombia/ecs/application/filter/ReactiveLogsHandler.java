@@ -21,9 +21,11 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.annotation.NonNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ReactiveLogsHandler implements WebFilter {
@@ -162,11 +164,22 @@ public class ReactiveLogsHandler implements WebFilter {
         requestInfo.setMethod(decoratedRequest.getMethod().name());
         requestInfo.setUrl(decoratedRequest.getURI().getPath());
 
-        Map<String, String> headers = DataSanitizer.sanitizeHeaders(decoratedRequest.getHeaders().entrySet(),
-            ecsPropertiesConfig.getAllowRequestHeaders());
-        setConsumer(requestInfo, headers);
-        requestInfo.setMessageId(headers.get(MESSAGE_ID));
-        requestInfo.setHeaders(headers);
+        Set<Map.Entry<String, List<String>>> headers =
+                decoratedRequest.getHeaders()
+                        .toSingleValueMap()
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> List.of(e.getValue())
+                        ))
+                        .entrySet();
+
+        Map<String, String> sanitizeHeaders = DataSanitizer.sanitizeHeaders(headers,
+                ecsPropertiesConfig.getAllowRequestHeaders());
+        setConsumer(requestInfo, sanitizeHeaders);
+        requestInfo.setMessageId(sanitizeHeaders.get(MESSAGE_ID));
+        requestInfo.setHeaders(sanitizeHeaders);
     }
 
     private HttpStatus resolveHttpStatus(Throwable ex) {

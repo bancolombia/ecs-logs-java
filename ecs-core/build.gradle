@@ -5,10 +5,7 @@ dependencies {
     implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
 
     // Spring configuration
-    implementation("org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}") {
-        // Exclude to minimize transitive dependencies if not needed
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
-    }
+    implementation("org.springframework.boot:spring-boot")
 }
 
 ext {

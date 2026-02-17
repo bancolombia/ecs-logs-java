@@ -1,6 +1,7 @@
 package co.com.bancolombia.ecs.infra.config;
 
 import co.com.bancolombia.ecs.helpers.SamplingHelper;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
@@ -8,12 +9,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
+@Log4j2
 public class LoggerEcsInitializer {
 
     private static final String START_CODE_40X = "40";
     private static final String START_CODE_20X = "20";
+    private static final String VERSION_MESSAGE = "This application is built with Spring Boot {} and requires Java {}";
+    private static final String SB_VERSION = "4.0.2";
+    private static final String JAVA_VERSION = "21";
 
     public LoggerEcsInitializer(SamplingConfig samplingConfig) {
+        log.info(VERSION_MESSAGE, SB_VERSION, JAVA_VERSION);
         Map<String, SamplingConfig.SamplingRule> rulesMap = buildRulesMap(samplingConfig);
         SamplingHelper.init(rulesMap);
     }
