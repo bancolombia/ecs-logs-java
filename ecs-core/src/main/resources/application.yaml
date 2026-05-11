@@ -22,3 +22,8 @@ spring:
         rules40XJson: ""
       sensitive-rules:
         sensitive-data: ""
+      print-on-error:
+          print-req-resp:
+          print-req-resp-level:
+      message-id:
+        enable_auto_register_message_id:

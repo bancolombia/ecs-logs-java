@@ -20,6 +20,9 @@ public class ErrorApiResponse {
         return new ErrorApiResponse(new Meta(exception.getMetaInfo().getMessageId()), exception);
     }
 
+    public static ErrorApiResponse build(BusinessException exception, String messageId) {
+        return new ErrorApiResponse(new Meta(messageId), exception);
+    }
     private List<Error> getErrors(ErrorManagement exception) {
         return List.of(Error.builder().code(exception.getErrorCode()).detail(exception.getMessage()).build());
     }

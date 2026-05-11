@@ -3,6 +3,7 @@ package co.com.bancolombia.api.shared.common.application;
 
 import co.com.bancolombia.api.shared.common.domain.HeaderConstant;
 import co.com.bancolombia.api.shared.common.domain.response.ErrorApiResponse;
+import co.com.bancolombia.ecs.infra.shared.common.domain.ContextECS;
 import co.com.bancolombia.ecs.model.management.BusinessExceptionECS;
 import co.com.bancolombia.model.shared.common.value.Constants;
 import co.com.bancolombia.model.shared.exception.BusinessException;
@@ -48,10 +49,14 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     }
 
     public Mono<ServerResponse> createResponseFromBusiness(BusinessException exception, ServerRequest request) {
+        String ecsMessageId = ContextECS.getMessageId();
+        var body = ecsMessageId != null
+                ? ErrorApiResponse.build(exception, ecsMessageId)
+                : ErrorApiResponse.build(exception);
         return ServerResponse
                 .status(exception.getConstantBusinessException().getStatus())
                 .headers(buildHeaders(request))
-                .bodyValue(ErrorApiResponse.build(exception));
+                .bodyValue(body);
     }
 
     private Consumer<HttpHeaders> buildHeaders(ServerRequest serverRequest) {

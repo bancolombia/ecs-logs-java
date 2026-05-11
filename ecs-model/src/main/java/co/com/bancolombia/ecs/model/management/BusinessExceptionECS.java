@@ -45,7 +45,7 @@ public class BusinessExceptionECS extends RuntimeException {
         super(validateMessage(message).getLogCode());
         this.constantBusinessException = validateMessage(message);
         this.optionalInfo = fillMap(EMPTY_VALUE);
-        this.metaInfo = metaInfo;
+        this.metaInfo = (metaInfo != null) ? metaInfo : MetaInfo.builder().build();
     }
 
     public BusinessExceptionECS(ErrorManagement message, Map<String, String> optionalInfo) {

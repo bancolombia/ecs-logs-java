@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "name": "adapter.ecs.logs.print-on-error.print-req-resp-level",
+      "type": "java.lang.String",
+      "description": "Controls which error type triggers request and response logging when adapter.ecs.logs.print-on-error.print-req-resp is enabled."
+    }
+  ],
+  "hints": [
+    {
+      "name": "adapter.ecs.logs.print-on-error.print-req-resp-level",
+      "values": [
+        {
+          "value": "BusinessExceptionECS",
+          "description": "Logs request and response payloads only when the error is a BusinessExceptionECS."
+        },
+        {
+          "value": "Exception",
+          "description": "Logs request and response payloads for any Exception, including BusinessExceptionECS."
+        },
+        {
+          "value": "Throwable",
+          "description": "Logs request and response payloads for any Throwable."
+        }
+      ]
+    }
+  ]
+}

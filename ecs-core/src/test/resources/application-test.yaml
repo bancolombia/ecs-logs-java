@@ -64,3 +64,6 @@ adapter:
                     "enabled": true
                   }
                 ]'
+      print-on-error:
+        print-req-resp:
+        print-req-resp-level:

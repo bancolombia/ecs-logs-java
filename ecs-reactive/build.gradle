@@ -19,7 +19,7 @@ dependencies {
     implementation "io.projectreactor:reactor-core:${reactorVersion}"
     testImplementation "io.projectreactor:reactor-test:${reactorVersion}"
 
-    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${fasterxmlJacksonCoreVersion}"
 }
 
 ext {

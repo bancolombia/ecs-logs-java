@@ -143,6 +143,47 @@ class SamplingHelperTest {
     }
 
     @Test
+    void shouldFallbackToResponseCodeFor4xxWhenErrorIsMissing() {
+        LogRecord<String, String> corsLogRecord = new LogRecord<>();
+        LogRecord.AdditionalInfo<String, String> info = new LogRecord.AdditionalInfo<>();
+        info.setUri("/test/endpoint");
+        info.setResponseCode("403");
+        corsLogRecord.setAdditionalInfo(info);
+
+        SamplingConfig.SamplingRule rule = new SamplingConfig.SamplingRule();
+        rule.setResponseCode("403");
+        rule.setUri("/test/endpoint");
+        rule.setShowCount(1);
+        rule.setSkipCount(1);
+
+        SamplingHelper.init(Map.of("/test/endpoint|403", rule));
+
+        assertTrue(SamplingHelper.validatePrint(corsLogRecord));
+        assertFalse(SamplingHelper.validatePrint(corsLogRecord));
+    }
+
+    @Test
+    void shouldFallbackToResponseCodeFor4xxWhenErrorTypeIsMissing() {
+        LogRecord.ErrorLog<String, String> errorLog = LogRecord.ErrorLog.<String, String>builder()
+                .message("Forbidden")
+                .description("CORS rejection")
+                .build();
+        logRecordError.getAdditionalInfo().setResponseCode("403");
+        logRecordError.setError(errorLog);
+
+        SamplingConfig.SamplingRule rule = new SamplingConfig.SamplingRule();
+        rule.setResponseCode("403");
+        rule.setUri("/test/endpoint");
+        rule.setShowCount(1);
+        rule.setSkipCount(1);
+
+        SamplingHelper.init(Map.of("/test/endpoint|403", rule));
+
+        assertTrue(SamplingHelper.validatePrint(logRecordError));
+        assertFalse(SamplingHelper.validatePrint(logRecordError));
+    }
+
+    @Test
     void shouldResetCounterAfterCycle() {
         SamplingConfig.SamplingRule rule = new SamplingConfig.SamplingRule();
         rule.setShowCount(1);
@@ -152,6 +193,18 @@ class SamplingHelperTest {
 
         assertTrue(SamplingHelper.validatePrint(logRecord));
         assertFalse(SamplingHelper.validatePrint(logRecord));
+        assertTrue(SamplingHelper.validatePrint(logRecord));
+    }
+
+    @Test
+    void shouldReturnTrueWhenSamplingIsDisabled() {
+        SamplingConfig.SamplingRule rule = new SamplingConfig.SamplingRule();
+        rule.setShowCount(0);
+        rule.setSkipCount(1);
+        SamplingHelper.init(Map.of("/test/endpoint|200", rule));
+
+        SamplingHelper.setSamplingEnabled(false);
+
         assertTrue(SamplingHelper.validatePrint(logRecord));
     }
 }

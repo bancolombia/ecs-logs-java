@@ -3,6 +3,7 @@ package co.com.bancolombia.ecs.domain.middleware;
 
 import co.com.bancolombia.ecs.application.LoggerEcs;
 import co.com.bancolombia.ecs.domain.model.AbstractMiddlewareEcsLog;
+import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
 import co.com.bancolombia.ecs.domain.model.LogRecord;
 
 public class MiddlewareEcsExcp extends AbstractMiddlewareEcsLog {
@@ -22,6 +23,8 @@ public class MiddlewareEcsExcp extends AbstractMiddlewareEcsLog {
             logExp.setError(logError);
             logExp.setLevel(LogRecord.Level.ERROR);
             logExp.setService(service);
+
+            MessageIdMngUseCase.getFromContext().ifPresent(logExp::setMessageId);
 
             LoggerEcs.print(logExp);
         } else if (next != null) {

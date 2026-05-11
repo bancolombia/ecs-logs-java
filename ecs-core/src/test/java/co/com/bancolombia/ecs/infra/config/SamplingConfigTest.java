@@ -53,7 +53,7 @@ class SamplingConfigTest {
     }
 
     @Test
-    void shouldBindPropertiesCorrectlyRules20X_40X() {
+    void shouldBindPropertiesCorrectlyRules20xAnd40x() {
         samplingConfig.setRules20XJson("[{\"uri\":\"/actors/createLegalPerson\",\"responseCode\":\"200\"," +
                 "\"showCount\":2,\"skipCount\":2},{\"uri\":\"/actors/createNaturalPerson\",\"responseCode\":\"200\"," +
                 "\"showCount\":2,\"skipCount\":2}]");
@@ -124,7 +124,7 @@ class SamplingConfigTest {
     }
 
     @Test
-    void shouldBindEmptyPropertiesCorrectlyRules20X_40X() {
+    void shouldBindEmptyPropertiesCorrectlyRules20xAnd40x() {
         samplingConfig.setRules20XJson("");
 
         samplingConfig.setRules40XJson("");
@@ -135,7 +135,7 @@ class SamplingConfigTest {
     }
 
     @Test
-    void shouldBindPropertiesNullRules20X_40X() {
+    void shouldBindPropertiesNullRules20xAnd40x() {
         samplingConfig.setRules20XJson(null);
 
         samplingConfig.setRules40XJson(null);

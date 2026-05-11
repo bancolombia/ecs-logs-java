@@ -18,6 +18,8 @@ public class SamplingHelper {
     private static final Map<String, LongAdder> counters = new ConcurrentHashMap<>();
     private static final String INIT_MESSAGE = "{} sampling rules have been loaded successfully";
     private static final String START_CODE_40X = "40";
+    private static final int MIN_ERROR_CODE_PARTS = 2;
+    private static boolean samplingEnabled = true;
 
     public static void init(Map<String, SamplingConfig.SamplingRule> rulesMap) {
         if (rulesMap != null) {
@@ -26,9 +28,14 @@ public class SamplingHelper {
         }
     }
 
+    public static void setSamplingEnabled(boolean enabled) {
+        samplingEnabled = enabled;
+    }
+
     public static void reset() {
         rules = Collections.emptyMap();
         counters.clear();
+        samplingEnabled = true;
     }
 
     private static void incrementCounter(String key) {
@@ -40,41 +47,47 @@ public class SamplingHelper {
     }
 
     public static boolean validatePrint(LogRecord<String, String> ex) {
-        boolean result = false;
-        if (ex.getAdditionalInfo() == null) return true;
-
+        if (!samplingEnabled || ex.getAdditionalInfo() == null) {
+            return true;
+        }
         String uri = ex.getAdditionalInfo().getUri();
         String responseCode = ex.getAdditionalInfo().getResponseCode();
-        if (uri != null && responseCode != null) {
-            String key = responseCode.startsWith(START_CODE_40X)
-                    ? uri + "|" + getErrorCode(ex.getError().getType())
-                    : uri + "|" + responseCode;
-
-            if (!rules.containsKey(key)) {
-                return true;
-            }
-
-            SamplingConfig.SamplingRule rule = rules.get(key);
-            int cycle = rule.getShowCount() + rule.getSkipCount();
-
-            incrementCounter(key);
-            long current = getCount(key);
-            long position = (current - 1) % cycle;
-
-            if (current >= cycle) {
-                counters.put(key, new LongAdder());
-            }
-
-            result = position < rule.getShowCount();
+        if (uri == null || responseCode == null) {
+            return false;
         }
+        return evaluateSamplingRule(ex, uri, responseCode);
+    }
 
-        return result;
+    private static boolean evaluateSamplingRule(LogRecord<String, String> ex, String uri, String responseCode) {
+        String key = buildKey(ex, uri, responseCode);
+        if (!rules.containsKey(key)) {
+            return true;
+        }
+        var rule = rules.get(key);
+        int cycle = rule.getShowCount() + rule.getSkipCount();
+        incrementCounter(key);
+        long current = getCount(key);
+        long position = (current - 1) % cycle;
+        if (current >= cycle) {
+            counters.put(key, new LongAdder());
+        }
+        return position < rule.getShowCount();
+    }
+
+    private static String buildKey(LogRecord<String, String> ex, String uri, String responseCode) {
+        if (responseCode.startsWith(START_CODE_40X)) {
+            String errorType = ex.getError() != null ? ex.getError().getType() : null;
+            if (errorType != null) {
+                return uri + "|" + getErrorCode(errorType);
+            }
+        }
+        return uri + "|" + responseCode;
     }
 
     private String getErrorCode(String errorCode){
         String[] parts = errorCode.split("-");
-        String result = "";
-        if (parts.length >= 2) {
+        var result = "";
+        if (parts.length >= MIN_ERROR_CODE_PARTS) {
             result = parts[0] + "-" + parts[1];
         }
         return result;
