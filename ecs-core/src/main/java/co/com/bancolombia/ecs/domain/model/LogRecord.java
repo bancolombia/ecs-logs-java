@@ -1,6 +1,7 @@
 package co.com.bancolombia.ecs.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.UUID;
 
+import static aQute.bnd.annotation.headers.Category.json;
+
 
 @Data
 @AllArgsConstructor
@@ -23,8 +26,9 @@ import java.util.UUID;
 public class LogRecord<T, R> {
 
     public static final String DATE_FORMAT = "dd/MM/yyyy HH:mm:ss:SSSS";
-
+    public static final String MESSAGE_ID = "message-id";
     @Builder.Default
+    @JsonProperty(MESSAGE_ID)
     private String messageId = UUID.randomUUID().toString();
     @Builder.Default
     private String date = currentDate();
@@ -38,7 +42,6 @@ public class LogRecord<T, R> {
         var date = LocalDateTime.now(ZoneOffset.of("-05:00"));
         return date.format(DateTimeFormatter.ofPattern(DATE_FORMAT));
     }
-    
 
     public String toJson() {
         var objectMapper = new ObjectMapper();

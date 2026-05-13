@@ -1,5 +1,6 @@
 package co.com.bancolombia.ecs.infra.config;
 
+import co.com.bancolombia.ecs.domain.model.ExceptionLevel;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveRequestProperties;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveResponseProperties;
 import co.com.bancolombia.ecs.infra.config.service.ServiceProperties;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EcsPropertiesConfigTest {
@@ -14,6 +16,8 @@ class EcsPropertiesConfigTest {
     private ServiceProperties serviceProps;
     private SensitiveRequestProperties reqProps;
     private SensitiveResponseProperties resProps;
+    private PrintOnErrorProperties printOnErrorProperties;
+
     private EcsPropertiesConfig config;
 
     @BeforeEach
@@ -37,7 +41,9 @@ class EcsPropertiesConfigTest {
         resProps.setPatterns(".*tokenValue.*");
         resProps.setReplacement("***");
 
-        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps);
+        printOnErrorProperties = new PrintOnErrorProperties();
+
+        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps, printOnErrorProperties);
     }
 
     @Test
@@ -60,7 +66,7 @@ class EcsPropertiesConfigTest {
     void testShouldParseRequestPropertiesShowFalse() {
         reqProps.setShow(Boolean.FALSE);
         resProps.setShow(Boolean.FALSE);
-        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps);
+        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps, printOnErrorProperties);
         assertEquals("ecs-test", config.getServiceName());
     }
 
@@ -70,7 +76,7 @@ class EcsPropertiesConfigTest {
         resProps.setShow(Boolean.FALSE);
         reqProps.setExcludedPaths(null);
         reqProps.setAllowHeaders(null);
-        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps);
+        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps, printOnErrorProperties);
         assertEquals("ecs-test", config.getServiceName());
         assertTrue(config.getExcludedPaths().contains("/actuator"));
         assertTrue(config.getAllowRequestHeaders().contains("message-id"));
@@ -83,7 +89,7 @@ class EcsPropertiesConfigTest {
         reqProps.setDelimiter(null);
         reqProps.setExcludedPaths(null);
         reqProps.setAllowHeaders(null);
-        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps);
+        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps, printOnErrorProperties);
         assertEquals("ecs-test", config.getServiceName());
         assertTrue(config.getExcludedPaths().contains("/actuator"));
         assertTrue(config.getAllowRequestHeaders().contains("message-id"));
@@ -96,9 +102,34 @@ class EcsPropertiesConfigTest {
         reqProps.setDelimiter("");
         reqProps.setExcludedPaths("");
         reqProps.setAllowHeaders("");
-        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps);
+        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps, printOnErrorProperties);
         assertEquals("ecs-test", config.getServiceName());
         assertTrue(config.getExcludedPaths().contains("/actuator"));
         assertTrue(config.getAllowRequestHeaders().contains("message-id"));
+    }
+
+    @Test
+    void testShouldActivatePrintOnErrorAndOverrideShowFlags() {
+        reqProps.setShow(Boolean.FALSE);
+        resProps.setShow(Boolean.FALSE);
+        reqProps.setDelimiter("\\|");
+        reqProps.setAllowHeaders("message-id");
+        reqProps.setExcludedPaths("/actuator");
+        reqProps.setFields("");
+        reqProps.setPatterns("");
+        reqProps.setReplacement("***");
+        resProps.setDelimiter("\\|");
+        resProps.setFields("");
+        resProps.setPatterns("");
+        resProps.setReplacement("***");
+        printOnErrorProperties.setPrintReqResp(Boolean.TRUE);
+        printOnErrorProperties.setPrintReqRespLevel("Exception");
+
+        config = new EcsPropertiesConfig(serviceProps, reqProps, resProps, printOnErrorProperties);
+
+        assertFalse(config.getShowRequestLogs());
+        assertFalse(config.getShowResponseLogs());
+        assertEquals(Boolean.TRUE, config.getPrintReqRespOnErrorOnly());
+        assertEquals(ExceptionLevel.EXCEPTION, config.getPrintReqRespLevels());
     }
 }

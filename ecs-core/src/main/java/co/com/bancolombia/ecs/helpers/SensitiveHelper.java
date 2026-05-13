@@ -59,12 +59,11 @@ public class SensitiveHelper {
      * @return The JSON content with sensitive data masked or removed according to the rules.
      */
     public static String filterSensitiveData(String jsonContent, String uri) {
-        if (rules.isEmpty() || jsonContent == null || jsonContent.isEmpty()) {
+        List<SensitiveRulesConfig.SensitiveDataRule> applicableRules = findApplicableRules(uri);
+        if (rules.isEmpty() || jsonContent == null || jsonContent.isEmpty() || applicableRules.isEmpty()) {
             log.debug(NO_SENSITIVE_CONFIGURED);
             return jsonContent;
         }
-        List<SensitiveRulesConfig.SensitiveDataRule> applicableRules = findApplicableRules(uri);
-        if (applicableRules.isEmpty()) return jsonContent;
 
         try {
             JsonNode root = MAPPER.readTree(jsonContent);

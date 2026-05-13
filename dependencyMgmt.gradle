@@ -1,5 +1,4 @@
 configurations.configureEach {
-
     /**
      * -------------------------------
      *  Forzado de versiones
@@ -15,12 +14,43 @@ configurations.configureEach {
         }
         if (details.requested.group == 'io.netty' && details.requested.name == 'netty-codec-http') {
             details.useVersion("${nettyVersion}")
+            details.because("CVE-2025-67735, CVE-2026-33870")
+        }
+        if (details.requested.group == 'io.netty' && details.requested.name == 'netty-codec-http2') {
+            details.useVersion("${netty2Version}")
+            details.because("CVE-2026-33871")
         }
         if (details.requested.group == 'ch.qos.logback') {
             details.useVersion("${logbackVersion}")
+            details.because("CVE-2026-1225 fix")
         }
         if (details.requested.group == 'org.apache.tomcat.embed' && details.requested.name == 'tomcat-embed-core') {
             details.useVersion("${tomcatEmbedCoreVersion}")
+            details.because("CVE-2025-66614, CVE-2026-24733, CVE-2026-24734")
+        }
+        if (details.requested.group == 'org.apache.logging.log4j' && details.requested.name == 'log4j-core') {
+            details.useVersion("${log4jVersion}")
+            details.because("CVE-2025-68161 fix")
+        }
+        if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name == 'jackson-core') {
+            details.useVersion("${fasterxmlJacksonCoreVersion}")
+            details.because("GHSA-72hv-8253-57qq")
+        }
+        if (details.requested.group == 'tools.jackson.core' && details.requested.name == 'jackson-core') {
+            details.useVersion("${toolsJacksonCoreVersion}")
+            details.because("CVE-2026-29062, GHSA-72hv-8253-57qq")
+        }
+        if (details.requested.group == 'org.assertj' && details.requested.name == 'assertj-core') {
+            details.useVersion("${assertjCoreVersion}")
+            details.because("CVE-2026-24400")
+        }
+        if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-webflux') {
+            details.useVersion("${springWebfluxVersion}")
+            details.because("CVE-2026-22737, CVE-2026-22735")
+        }
+        if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-webmvc') {
+            details.useVersion("${springWebmvcVersion}")
+            details.because("CVE-2026-22737, CVE-2026-22735")
         }
     }
 }

@@ -163,6 +163,19 @@ class BusinessExceptionECSTest {
     }
 
     @Test
+    void testConstructorWithNullMetaInfoInMetaConstructorReturnsGenerated() {
+        ErrorManagement err = ErrorManagement.DEFAULT_EXCEPTION;
+        BusinessExceptionECS ex = new BusinessExceptionECS(err, (BusinessExceptionECS.MetaInfo) null);
+        assertNotNull(ex.getMetaInfo());
+        assertNotNull(ex.getMetaInfo().getMessageId());
+        assertNotNull(ex.getConstantBusinessException().getMessage());
+        assertNotNull(ex.getConstantBusinessException().getErrorCode());
+        assertNotNull(ex.getConstantBusinessException().getInternalMessage());
+        assertNotNull(ex.getConstantBusinessException().getStatus());
+        assertNotNull(ex.getConstantBusinessException().getLogCode());
+    }
+
+    @Test
     void testMetaInfoBuilderCreatesUniqueIds() {
         String id1 = BusinessExceptionECS.MetaInfo.builder().build().getMessageId();
         String id2 = BusinessExceptionECS.MetaInfo.builder().build().getMessageId();

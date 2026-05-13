@@ -1,6 +1,8 @@
 ##Spring Configuration
 server:
   port: 8080
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
 spring:
   application:
     name: ecs_logs_test
@@ -15,6 +17,11 @@ spring:
 adapter:
   ecs:
     logs:
+      print-on-error:
+        print-req-resp: false
+        print-req-resp-level: Exception
+      message-id:
+        enable_auto_register_message_id: true
       request:
         replacement: ""
         patterns: ""
@@ -30,7 +37,33 @@ adapter:
         patterns: ""
         show: true
       sampling:
-        rules20XJson: ""
-        rules40XJson: ""
+        rules20XJson: >
+          [{"uri":"/getClient","responseCode":"200","showCount":2,"skipCount":2},
+          {"uri":"/retrieveUser","responseCode":"201","showCount":2,"skipCount":2}]
+        rules40XJson: >
+          [{"uri":"/getClient","responseCode":"400","showCount":2,"skipCount":2,"errorCodes":"SAER400-01|SAER400-02"},
+          {"uri":"/retrieveUser","responseCode":"404","showCount":2,"skipCount":2,"errorCodes":"BPER404-52"}]
       sensitive-rules:
-        sensitive-data: ""
+        sensitive-data: >
+          [
+            {
+              "uriPattern": "/getClient",
+              "fieldPaths": [
+                "additionalInfo.requestBody.data.identification.number"
+              ],
+              "maskingType": "PARTIAL",
+              "enabled": true,
+              "maskingChar": "*",
+              "visibilityPercentage": 0.5
+            },
+            {
+              "uriPattern": "/getClient",
+              "fieldPaths": [
+                "additionalInfo.responseBody.data.identification"
+              ],
+              "maskingType": "PARTIAL",
+              "enabled": true,
+              "maskingChar": "*",
+              "visibilityPercentage": 0.5
+            }
+          ]

@@ -127,6 +127,10 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << '-parameters'
+    }
+
     javadoc {
         if (JavaVersion.current().isJava9Compatible()) {
             options.addBooleanOption('html5', true)

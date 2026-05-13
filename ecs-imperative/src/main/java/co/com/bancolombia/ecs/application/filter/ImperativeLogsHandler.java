@@ -1,12 +1,14 @@
 package co.com.bancolombia.ecs.application.filter;
 
+import co.com.bancolombia.ecs.domain.model.LogRecord;
+import co.com.bancolombia.ecs.infra.shared.common.domain.ContextECS;
+import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
+import co.com.bancolombia.ecs.domain.model.ExceptionLevel;
 import co.com.bancolombia.ecs.helpers.DataSanitizer;
+import co.com.bancolombia.ecs.helpers.HandlerHelper;
 import co.com.bancolombia.ecs.infra.EcsImperativeLogger;
 import co.com.bancolombia.ecs.infra.config.EcsPropertiesConfig;
-import co.com.bancolombia.ecs.model.management.BusinessExceptionECS;
 import co.com.bancolombia.ecs.model.request.LogRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +18,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
@@ -23,75 +26,96 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ImperativeLogsHandler extends OncePerRequestFilter {
     private static final int MAX_PAYLOAD_SIZE = 1024 * 1024;
-    private static final Set<String> CONSUMER_ACRONYMS = Set.of("consumer-acronym", "code", "channel");
     private static final String HANDLED_EXCEPTION_PROPERTY = "handledException";
-    private static final int MIN_REQUEST_ERROR_CODE = 400;
-    private static final String MESSAGE_ID = "message-id";
-    private static final String RAW_BODY = "raw";
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private final EcsPropertiesConfig ecsPropertiesConfig;
     private final Boolean showRequestLogs;
     private final Boolean showResponseLogs;
+    private final boolean printReqRespOnErrorOnlyActive;
+    private final ExceptionLevel printReqRespLevel;
+    private final MessageIdMngUseCase messageIdMngUseCase;
 
-    public ImperativeLogsHandler(EcsPropertiesConfig ecsPropertiesConfig) {
+    public ImperativeLogsHandler(EcsPropertiesConfig ecsPropertiesConfig,
+                                 MessageIdMngUseCase messageIdMngUseCase) {
         this.ecsPropertiesConfig = ecsPropertiesConfig;
         this.showRequestLogs = ecsPropertiesConfig.getShowRequestLogs();
         this.showResponseLogs = ecsPropertiesConfig.getShowResponseLogs();
-    }
-
-    private static void setConsumer(LogRequest logRequest, Map<String, String> headers) {
-        String consumer = CONSUMER_ACRONYMS.stream()
-            .map(headers::get)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
-        logRequest.setConsumer(consumer);
+        this.printReqRespOnErrorOnlyActive = Boolean.TRUE.equals(ecsPropertiesConfig.getPrintReqRespOnErrorOnly());
+        this.printReqRespLevel = ecsPropertiesConfig.getPrintReqRespLevels();
+        this.messageIdMngUseCase = messageIdMngUseCase;
     }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
                                     @NonNull FilterChain chain) throws ServletException, IOException {
+        String resolvedMessageId = resolveMessageId(request);
+        if (resolvedMessageId != null) {
+            ContextECS.setMessageId(resolvedMessageId);
+        }
 
-        if (Boolean.FALSE.equals(showRequestLogs) && Boolean.FALSE.equals(showResponseLogs)) {
-            chain.doFilter(request, response);
+        if (!printReqRespOnErrorOnlyActive
+                && Boolean.FALSE.equals(showRequestLogs)
+                && Boolean.FALSE.equals(showResponseLogs)) {
+            doFilterWithClear(chain, request, response);
             return;
         }
 
         String path = request.getRequestURI();
-        if (ecsPropertiesConfig.getExcludedPaths().stream().anyMatch(path::startsWith)) {
-            chain.doFilter(request, response);
+        if (HandlerHelper.isPathExcluded(path, ecsPropertiesConfig.getExcludedPaths())) {
+            doFilterWithClear(chain, request, response);
             return;
         }
 
         var wrappedRequest = new ContentCachingRequestWrapper(request, MAX_PAYLOAD_SIZE);
         var wrappedResponse = new ContentCachingResponseWrapper(response);
-
         try {
             chain.doFilter(wrappedRequest, wrappedResponse);
         } finally {
-            int status = wrappedResponse.getStatus();
-            if (status >= MIN_REQUEST_ERROR_CODE) {
-                Throwable ex = (Throwable) wrappedRequest.getAttribute(HANDLED_EXCEPTION_PROPERTY);
-                if (ex != null) {
-                    logError(ex, wrappedRequest);
-                } else {
-                    logRequest(wrappedRequest, wrappedResponse);
-                }
-            } else {
-                logRequest(wrappedRequest, wrappedResponse);
-            }
+            handleRequestOrError(wrappedRequest, wrappedResponse);
             wrappedResponse.copyBodyToResponse();
+            ContextECS.clear();
+        }
+    }
+
+    private String resolveMessageId(HttpServletRequest request) {
+        Map<String, List<String>> rawHeadersMap = Collections.list(request.getHeaderNames()).stream()
+                .filter(name -> request.getHeader(name) != null)
+                .collect(Collectors.toMap(name -> name, name -> List.of(request.getHeader(name))));
+        return messageIdMngUseCase.resolveFromHeaders(
+                rawHeadersMap.entrySet(), ecsPropertiesConfig.getAllowRequestHeaders());
+    }
+
+    private void doFilterWithClear(FilterChain chain, HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            ContextECS.clear();
+        }
+    }
+
+    private void handleRequestOrError(ContentCachingRequestWrapper wrappedRequest,
+                                      ContentCachingResponseWrapper wrappedResponse) {
+        int status = wrappedResponse.getStatus();
+        if (HandlerHelper.isErrorStatusCode(status)) {
+            Throwable ex = (Throwable) wrappedRequest.getAttribute(HANDLED_EXCEPTION_PROPERTY);
+            logError(ex != null ? ex : buildStatusException(status), wrappedRequest);
+        } else {
+            logRequest(wrappedRequest, wrappedResponse);
         }
     }
 
     private void logRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response) {
+        if (printReqRespOnErrorOnlyActive) {
+            return;
+        }
+
         var logRequest = new LogRequest();
         setRequestParameters(request, logRequest);
 
@@ -107,14 +131,18 @@ public class ImperativeLogsHandler extends OncePerRequestFilter {
     }
 
     private void logError(Throwable error, ContentCachingRequestWrapper request) {
+        if (printReqRespOnErrorOnlyActive && HandlerHelper.errorDoesntMatchLevel(error, printReqRespLevel)) {
+            return;
+        }
+
         var logRequest = new LogRequest();
         setRequestParameters(request, logRequest);
         sensitiveRequestBody(request, logRequest);
 
         // Response
-        int status = resolveHttpStatus(error).value();
-        logRequest.setResponseCode(String.valueOf(status));
-        logRequest.setResponseResult(resolveHttpStatus(error).getReasonPhrase());
+        var status = HandlerHelper.resolveHttpStatus(error);
+        logRequest.setResponseCode(String.valueOf(status.value()));
+        logRequest.setResponseResult(status.getReasonPhrase());
         logRequest.setError(error);
 
         EcsImperativeLogger.build(logRequest, ecsPropertiesConfig.getServiceName());
@@ -131,7 +159,7 @@ public class ImperativeLogsHandler extends OncePerRequestFilter {
             ecsPropertiesConfig.getSensitiveResponseFields(),
             ecsPropertiesConfig.getSensitiveResponsePatterns(),
             ecsPropertiesConfig.getSensitiveResponseReplacement());
-        logRequest.setResponseBody(parseToMap(sanitizedResponse));
+        logRequest.setResponseBody(HandlerHelper.parseToMap(sanitizedResponse));
     }
 
     private void sensitiveRequestBody(ContentCachingRequestWrapper request, LogRequest logRequest) {
@@ -141,35 +169,31 @@ public class ImperativeLogsHandler extends OncePerRequestFilter {
             ecsPropertiesConfig.getSensitiveRequestFields(),
             ecsPropertiesConfig.getSensitiveRequestPatterns(),
             ecsPropertiesConfig.getSensitiveRequestReplacement());
-        logRequest.setRequestBody(parseToMap(sanitizedRequest));
+        logRequest.setRequestBody(HandlerHelper.parseToMap(sanitizedRequest));
     }
 
     private void setRequestParameters(ContentCachingRequestWrapper request, LogRequest logRequest) {
         logRequest.setMethod(request.getMethod());
         logRequest.setUrl(request.getRequestURI());
         Set<Map.Entry<String, List<String>>> requestHeaders = Collections.list(request.getHeaderNames()).stream()
-            .map(name -> Map.entry(name, List.of(request.getHeader(name).toLowerCase())))
+            .flatMap(name -> {
+                String headerValue = request.getHeader(name);
+                return headerValue == null
+                    ? Stream.empty()
+                    : Stream.of(Map.entry(name, List.of(headerValue.toLowerCase())));
+            })
             .collect(Collectors.toSet());
 
         Map<String, String> headers = DataSanitizer.sanitizeHeaders(requestHeaders,
             ecsPropertiesConfig.getAllowRequestHeaders());
-        setConsumer(logRequest, headers);
-        logRequest.setMessageId(headers.get(MESSAGE_ID));
+        HandlerHelper.setConsumer(logRequest, headers);
+        logRequest.setMessageId(headers.get(LogRecord.MESSAGE_ID));
         logRequest.setHeaders(headers);
     }
 
-    private HttpStatus resolveHttpStatus(Throwable ex) {
-        if (ex instanceof BusinessExceptionECS businessExceptionECS) {
-            return HttpStatus.valueOf(businessExceptionECS.getConstantBusinessException().getStatus());
-        }
-        return HttpStatus.INTERNAL_SERVER_ERROR;
-    }
-
-    private Map<String, String> parseToMap(String body) {
-        try {
-            return objectMapper.readValue(body, Map.class);
-        } catch (JsonProcessingException e) {
-            return Map.of(RAW_BODY, body);
-        }
+    private ResponseStatusException buildStatusException(int statusCode) {
+        HttpStatus status = HandlerHelper.resolveStatusCode(statusCode);
+        HttpStatus resolvedStatus = status != null ? status:HttpStatus.INTERNAL_SERVER_ERROR;
+        return new ResponseStatusException(resolvedStatus, resolvedStatus.getReasonPhrase());
     }
 }

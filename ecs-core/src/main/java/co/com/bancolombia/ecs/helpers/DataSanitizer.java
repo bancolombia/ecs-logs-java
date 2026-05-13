@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,23 +35,34 @@ public class DataSanitizer {
         }
     }
 
+    // This method handles mixed case headers and symbols '-' and '_' in the header.
     public static Map<String, String> sanitizeHeaders(
         Set<Map.Entry<String, List<String>>> requestHeaders, Set<String> allowedHeaders) {
 
-        Set<String> allowedLower = allowedHeaders.stream()
-            .map(String::toLowerCase)
-            .collect(Collectors.toSet());
-
-        return requestHeaders.stream()
-            .filter(entry -> {
-                String lowerKey = entry.getKey().toLowerCase();
-                List<String> values = entry.getValue();
-                return allowedLower.contains(lowerKey) && !values.isEmpty();
-            })
+        Map<String, String> allowedHeadersNormalizedToCanonical = allowedHeaders.stream()
             .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().get(0)
+                DataSanitizer::normalizeKey,
+                String::toLowerCase,
+                (first, second) -> first
             ));
+
+        Map<String, String> result = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : requestHeaders) {
+            List<String> values = entry.getValue();
+            if (values.isEmpty()) {
+                continue;
+            }
+            String normalized = normalizeKey(entry.getKey());
+            String canonical = allowedHeadersNormalizedToCanonical.get(normalized);
+            if (canonical != null) {
+                result.putIfAbsent(canonical, values.getFirst());
+            }
+        }
+        return result;
+    }
+
+    private static String normalizeKey(String key) {
+        return key.replace("-", "").replace("_", "").toLowerCase();
     }
 
     private static void sanitizeJsonMap(Map<String, Object> map, Set<String> sensitiveFields, String replacement) {

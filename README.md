@@ -1,68 +1,36 @@
-# Java ECS Library
+<!-- fullWidth: false tocVisible: false tableWrap: true -->
+# Librería de Logging ECS
 
-A comprehensive Java library that enables structured logging in ECS (Elastic Common Schema) format, providing standardized log output for better observability and monitoring in Java applications.
+![Diagram](./docs/componentes.png)
 
-## **General description**
+# **Descripción General**
 
-The **ECS Logging Library** is a Java-based library designed to generate structured logs compliant with the `Elastic Common Schema (ECS)` format. It supports both imperative and reactive programming paradigms for Java projects generated from templates (scaffolds). The library simplifies the creation of logs following a predefined schema, enabling consistent and efficient analysis of request, response, and error logs.
+La **Librería de Logging ECS** es una biblioteca basada en Java diseñada para generar logs estructurados que cumplen con el formato del `Elastic Common Schema (ECS)`. Soporta los paradigmas de programación imperativa y reactiva, para proyectos Java generados a partir de plantillas (scaffold). La biblioteca facilita la generación de logs con un esquema previamente definido, permitiendo un y análisis de los logs de request/response/error.
 
-## **Modules**
-The library is composed of four main modules:
+## **Módulos**
 
-**ecs-model:** Defines the data structures and schema required for logs to comply with the ECS standard. This module serves as a dependency for the other modules.
-**ecs-core:** Contains the core logic for building logs in ECS format, using *ecs-model* for schema definitions.
-**ecs-imperative:** Provides logging functionality for projects following an imperative programming approach, leveraging *ecs-core*.
-**ecs-reactive:** Provides logging functionality for projects following a reactive programming approach (e.g., Project Reactor), also leveraging *ecs-core*.
+La librería está compuesta por cuatro módulos principales:
 
-## **Prerequisites**
+**ecs-model:** Define las estructuras de datos y el esquema necesario para que los logs cumplan con el estándar ECS. Este módulo es una dependencia para los demás módulos.\
+**ecs-core:** Contiene la lógica central para construir logs en formato ECS, utilizando ecs-model para las definiciones de esquema.\
+**ecs-imperative:** Proporciona funcionalidad de logging para proyectos que siguen un enfoque de programación imperativa, utilizando ecs-core.\
+**ecs-reactive:** Proporciona funcionalidad de logging para proyectos que siguen un enfoque de programación reactiva (ej. Project Reactor), también utilizando ecs-core.
 
-**Java:** Version 21 or higher.
-**Gradle:** For dependency management.
+## **Prerrequisitos**
 
-## Getting Started
+**Java:** Versión 21 o superior.\
+**Gradle:** Para la gestión de dependencias.\
+**Azure DevOps:** Para pipelines de CI/CD.
 
-**IMPORTANT:** To implement the library in reactive projects, you must have a global error handler in the project and not control the exception at the handler level. This is because when the error is controlled internally in each handler, the response is no longer propagated to the library as an error, generating unexpected log prints.
+## Uso en Proyectos generados con Scaffold
 
-If the global exception handler cannot be implemented, the imperative library must be used in the project.
+La Librería de Logging ECS está diseñada para integrarse fácilmente en proyectos Java.
 
-Example of error control at the handler level:
+### Proyectos Imperativos/Reactivo
 
-``` java
-return validateHeader.handler(request)
-    .flatMap(metaData -> process(request, metaData))
-    .onErrorResume(BusinessException.class, exception ->
-        handlerResponse.createErrorResponse(exception, request))
-    .onErrorResume(handlerResponse::runtimeException);
+**Agregar Dependencia:** Incluye `ecs-model` en el `main.gradle` principal como se muestra posteriomente.
+
 ```
-
-
-## Importing the Library
-To use the ECS Logging Library in a Java project, add the corresponding dependencies to your `build.gradle` (Gradle) file.
-
-For imperative projects:
-```gradle
-dependencies {
-    implementation ':ecs-imperative:<version>'
-}
-````
-For reactive projects:
-```gradle
-dependencies {
-    implementation ':ecs-reactive:<version>'
-}
-````
-For the model:
-```gradle
-dependencies {
-    implementation ':ecs-model:<version>'
-}
-````
-
-### Imperative/Reactive Projects
-
-**Add Dependency:** Include `ecs-model` in the main `main.gradle` as shown below.
-
-``` gradle
 subprojects {  
 	apply plugin: 'java'  
 	apply plugin: 'jacoco'  
@@ -71,7 +39,7 @@ subprojects {
 	compileJava.dependsOn validateStructure  
 
 	java {  
-	   sourceCompatibility = JavaVersion.VERSION_21  
+	   sourceCompatibility = JavaVersion.VERSION_21 
 	   targetCompatibility = JavaVersion.VERSION_21  
 	}  
 
@@ -84,31 +52,24 @@ subprojects {
 	dependencies {  
 		...  
 
-		implementation ':ecs-model:<version>'  
+		implementation 'co.com.bancolombia:ecs-model:<library-version>'  
 	}
 }
 ```
 
-Configure the library in **whitelistedDependencies** to avoid errors in the **validate-structure** task for scaffold projects, in the `main.gradle` file.
+Configurar en el **whitelistedDependencies** la librería para evitar el error en la tarea de **validate-structure** de scaffold\
 [validate-structure](https://bancolombia.github.io/scaffold-clean-architecture/docs/tasks/validate-structure)
 
-```gradle
-cleanPlugin {  
-    modelProps {  
-        whitelistedDependencies = "ecs-model"  
-    }  
-}
+En la clase de excepción ejemplo `BusinessException` o `AppException` debe extender de la clase `BusinessExceptionECS` del modelo de la librería\
+ejemplo:
+
 ```
-
-Link for more information about [validate-structure](https://bancolombia.github.io/scaffold-clean-architecture/docs/tasks/validate-structure)
-
-In the exception class example `BusinessException` or `AppException`, you must extend the `BusinessExceptionECS` class from the library model.
-Example:
-
-```java
-import ecs.model.management.BusinessExceptionECS; 
-
+package co.com.bancolombia.model.exception;  
+  
+import co.com.bancolombia.ecs.model.management.BusinessExceptionECS;  
+  
 public class BusinessException extends BusinessExceptionECS {  
+ 
     ...
   
     public BusinessException(ConstantBusinessException value) {  
@@ -119,34 +80,47 @@ public class BusinessException extends BusinessExceptionECS {
  }
 ```
 
+En la clase de las constantes de las excepciones ejemplo `ConstantBusinessException`  debe implementar la interfaz `ErrorManagement` del modelo de la librería\
+ejemplo:
 
-In the exception constant class, the `ConstantBusinessException` example must implement the `ErrorManagement` interface of the library model.
-Example:
-
-```java
-import ecs.model.management.ErrorManagement;  
-
+```
+package co.com.bancolombia.model.exception;  
+  
+import co.com.bancolombia.ecs.model.management.ErrorManagement;  
+   
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;  
+  
 public enum ConstantBusinessException implements ErrorManagement {
+
+    ...
+    DEFAULT_EXCEPTION(HTTP_INTERNAL_ERROR,  
+        CodeMessage.INITIAL_CODE_DETAIL,  
+        BusinessCode.BASIC_INITIAL_CODE,  
+        InternalMessage.TECHNICAL_ERROR,  
+        CodeLog.LOG500_00),
+   ...
 
 }
 ```
 
-### Imperative Projects
+### Proyectos Imperativos
 
-**Add Dependency:** Include `ecs-imperative` in the `build.gradle` of the application module where the Main application is located, as shown below.
+**Agregar Dependencia:** Incluye `ecs-imperative` en el `build.gradle` del modulo de aplicación donde se encuentra el Main application como se muestra posteriomente.
 
-```gradle
+```
 dependencies {  
 	... 
 
-	implementation ':ecs-imperative:<version>'  
+	implementation 'co.com.bancolombia:ecs-imperative:<library-version>'  
 }       
 ```
 
-Import the configuration of `ImperativeLogsConfiguration` into the main class:
+Importar la configuracion de el `ImperativeLogsConfiguration` en la clase de main principal:
 
-```java
-import ecs.application.ImperativeLogsConfiguration;  
+```
+package co.com.bancolombia;  
+  
+import co.com.bancolombia.ecs.application.ImperativeLogsConfiguration;  
 import org.springframework.boot.SpringApplication;  
 import org.springframework.boot.autoconfigure.SpringBootApplication;  
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;  
@@ -162,23 +136,24 @@ public class MainApplication {
 }
 ```
 
-### Reactive Projects
+### Proyectos Reactivos
 
-**Add Dependency:** Include `ecs-reactive` in the `build.gradle` of the application module where the Main application is located, as shown below.
+**Agregar Dependencia:** Incluye `ecs-reactive` en el `build.gradle` del modulo de aplicación donde se encuentra el Main application como se muestra posteriomente.
 
-```gradle
+```
 dependencies {  
 	... 
 
-	implementation ':ecs-reactive:<version>'  
+	implementation 'co.com.bancolombia:ecs-reactive:<library-version>'  
 }       
 ```
 
-Import the configuration of `ReactiveLogsConfiguration` into the main class:
+Importar la configuracion de el `ReactiveLogsConfiguration` en la clase de main principal:
 
-```java
-
-import ecs.application.ReactiveLogsConfiguration;  
+```
+package co.com.bancolombia;  
+  
+import co.com.bancolombia.ecs.application.ReactiveLogsConfiguration;  
 import org.springframework.boot.SpringApplication;  
 import org.springframework.boot.autoconfigure.SpringBootApplication;  
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;  
@@ -194,124 +169,282 @@ public class MainApplication {
 }
 ```
 
-**Output:** Logs are generated across all REST requests and application errors in JSON ECS format.
+**Salida:** Los logs se generan de manera transversal a todas las peticiones rest y errores del aplicativo en formato JSON ECS.
 
-## Log contract structure:
+## Estructura del contrato de los logs:
 
-Definition of the structure of the records generated by the ECS Logging Library.
+# Variables de entorno ECS
 
-## ECS environment variables
+**`Variables por default`**
 
-**`Default variables`**
+```
+spring:
+
+  application:
+
+    name: "ms_ecs"
+
+  ecs:
+
+    logs:
+
+      request:
+
+        replacement: ""
+
+        patterns: ""
+
+        delimiter: ""
+
+        fields: ""
+
+        allow-headers: ""
+
+        excluded-paths: "/actuator"
+
+        show: false
+
+      response:
+
+        replacement: ""
+
+        delimiter: ""
+
+        fields: ""
+
+        patterns: ""
+
+        show: false
+
+      print-on-error:
+
+        print-req-resp:
+
+        print-req-resp-level:
+
+      message-id:
+
+        enable_auto_register_message_id:
+```
+
+| Variable de Entorno                                         | Descripción                                                                                    | Valor por Defecto |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------- |
+| `spring.application.name`                                   | Nombre del servicio                                                                            | "ms_ecs"          |
+| `spring.ecs.logs.request.replacement`                       | Reemplazos para campos en los logs de solicitudes                                              | ""                |
+| `spring.ecs.logs.request.patterns`                          | Patrones a filtrar el json de las solicitudes                                                  | ""                |
+| `spring.ecs.logs.request.delimiter`                         | Delimitador utilizado para separar campos en las variables de solicitudes                      | ""                |
+| `spring.ecs.logs.request.fields`                            | Campos a aplicar la sanitización en los logs de solicitudes                                    | ""                |
+| `spring.ecs.logs.request.allow-headers`                     | Encabezados HTTP permitidos para incluir en los logs de solicitudes                            | ""                |
+| `spring.ecs.logs.request.excluded-paths`                    | Rutas excluidas del registro de solicitudes                                                    | "/actuator"       |
+| `spring.ecs.logs.request.show`                              | Indica si se deben mostrar los logs de las solicitudes                                         | false             |
+| `spring.ecs.logs.response.replacement`                      | Reemplazos para campos en los logs de respuestas                                               | ""                |
+| `spring.ecs.logs.response.delimiter`                        | Delimitador utilizado para separar campos de las variables de respuestas                       | ""                |
+| `spring.ecs.logs.response.fields`                           | Campos a aplicar la sanitización en los logs de respuestas                                     | ""                |
+| `spring.ecs.logs.response.patterns`                         | Patrones a buscar en los logs de respuestas                                                    | ""                |
+| `spring.ecs.logs.response.show`                             | Indica si se deben mostrar los logs de las respuestas                                          | false             |
+| `spring.ecs.logs.print-on-error.print-req-resp`             | Activa la impresión condicional de request/response solo en errores                            | null              |
+| `spring.ecs.logs.print-on-error.print-req-resp-level`       | Nivel único de excepción que dispara la impresión (`BusinessExceptionECS`, `Exception`, `Throwable`) | null              |
+| `adapter.ecs.logs.message-id.enable_auto_register_message_id` | Controla la autogeneración del `message-id` UUID por request. Solo acepta `"true"` o `"false"` | *(no declarada)*  |
+
+## Gestión automática de `message-id`
+
+Esta funcionalidad permite que la librería genere y propague automáticamente un identificador único (`message-id` UUID) por cada request HTTP entrante, con comportamiento configurable vía YAML sin necesidad de cambios en el código del microservicio consumidor.
+
+### Variable de configuración
 
 ```yaml
 adapter:
-  ecs:
-    logs:
-      request:
-        replacement: ""
-        patterns: ""
-        delimiter: ""
-        fields: ""
-        allow-headers: ""
-        excluded-paths: "/actuator"
-        show: false
-      response:
-        replacement: ""
-        delimiter: ""
-        fields: ""
-        patterns: ""
-        show: false
-      sampling:
-        rules20XJson: ""
-        rules40XJson: ""
-      sensitive-rules:  
-        sensitive-data: ""
+  ecs:
+    logs:
+      message-id:
+        enable_auto_register_message_id: "true"   # "true" | "false" | (omitir)
 ```
 
+| Variable                                                    | Tipo   | Descripción                                                                                                    | Valor por Defecto |
+| ----------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `spring.ecs.logs.message-id.enable_auto_register_message_id` | String | Controla la autogeneración del `message-id`. Solo acepta `"true"` o `"false"` (valores distintos fallan al arrancar) | *(no declarada)*  |
 
+> **Por qué el tipo es `String` y no `Boolean`?** Spring Boot convierte silenciosamente `"yes"`, `"on"`, `"1"` → `true` con tipo `Boolean`. Con tipo `String` + validador explícito, cualquier valor no permitido lanza un error al iniciar la aplicación.
 
-| Environment Variable | Description | Default Value |
-| :--- | :--- | :--- |
-| `adapter.ecs.logs.request.replacement` | Replacements for fields in request logs | “” |
-| `adapter.ecs.logs.request.patterns` | Patterns to filter the JSON of requests | “” |
-| `adapter.ecs.logs.request.delimiter` | Delimiter used to separate fields in request variables | “” |
-| `adapter.ecs.logs.request.fields` | Fields to sanitize in request logs | “” |
-| `adapter.ecs.logs.request.allow-headers` | HTTP headers allowed to include in request logs | “” |
-| `adapter.ecs.logs.request.excluded-paths` | Paths excluded from request logging | “/actuator” |
-| `adapter.ecs.logs.request.show` | Indicates whether request logs should be displayed | false |
-| `adapter.ecs.logs.response.replacement` | Replacements for fields in response logs | “” |
-| `adapter.ecs.logs.response.delimiter` | Delimiter used to separate fields from response variables | “” |
-| `adapter.ecs.logs.response.fields` | Fields to apply sanitization to in response logs | “” |
-| `adapter.ecs.logs.response.patterns` | Patterns to search for in response logs | “” |
-| `adapter.ecs.logs.response.show` | Indicates whether response logs should be displayed | false |
-| `adapter.ecs.logs.sampling.rules20XJson` | List of sampling rules for HTTP 20X response codes in Json format | “”|
-| `adapter.ecs.logs.sampling.rules40XJson` | List of sampling rules for HTTP 40X response codes in JSON format | “”|
-| `adapter.ecs.logs.sensitive-rules.sensitive-data` | List of rules for masking sensitive information by path | “” |
----
+### Comportamiento según configuración
 
-# ECS Logging Scheme Contract
+| Valor YAML     | Header enviado por el cliente | Header ausente en request      | Excepción sin `message-id` previo |
+| -------------- | ----------------------------- | ------------------------------ | ------------------------------- |
+| *(no declarada)* | Se propaga tal como viene     | Se genera UUID automáticamente | Se genera UUID siempre          |
+| `"false"`      | Se propaga tal como viene     | No se genera UUID (`null`)     | Se genera UUID siempre          |
+| `"true"`       | Se propaga tal como viene     | Se genera UUID automáticamente | Se genera UUID siempre          |
 
-Definition of the structure of logs generated by the ECS Logging Library. The structure of logs for the `INFO` and `ERROR` levels is described below, specifying the fields, their data types, and whether they are mandatory.
+> El header del cliente **siempre se propaga**, independientemente del valor configurado. La diferencia entre modos solo aplica cuando el cliente **no** envía el header.
+
+> Las **excepciones siempre tienen trazabilidad**: `resolveForException` genera UUID incondicionalmente cuando no hay un `message-id` previo, sin importar el valor de `enable_auto_register_message_id`.
+
+### Normalización del header
+
+El header se reconoce en cualquiera de sus variantes: `message-id`, `Message-Id`, `messageId`, `message_id`. Internamente se normaliza a la clave canónica `message-id`.
 
 ---
 
-## General Log Structure
+## Impresión condicional de request/response (`print-on-error`)
 
-| Field           | Data Type     | Description                                                      | Required |
-|-----------------|---------------|------------------------------------------------------------------|----------|
-| `messageId`       | String (UUID) | Unique message identifier in UUID format.                        | Yes      |
-| `date`            | String        | Date and time of the event in `DD/MM/YYYY HH:MM:SS:SSSS` format. | Yes      |
-| `service`         | String        | Name of the service that generates the log (e.g., `ms_person`).  | Yes      |
-| `consumer`        | String        | Identifier of the consumer or client making the request.         | Yes      |
-| `additionalInfo`  | Object        | Additional information about the request (see details below).    | Yes      |
-| `level`           | String        | Log level (`INFO` or `ERROR`).                                   | Yes      |
-| `error`           | Object/Null   | Error details (present in `ERROR` logs, `null` in `INFO`).       | No       |
+Esta funcionalidad permite que el cuerpo de request y response **solo se imprima cuando ocurre un error** que coincida con los tipos configurados. Es útil para reducir el volumen de logs en peticiones exitosas sin perder visibilidad en los errores.
+
+### Variables de configuración
+
+```yaml
+adapter:
+  ecs:
+    logs:
+      print-on-error:
+        print-req-resp: true
+        print-req-resp-level: "Throwable"
+```
+
+| Variable                                             | Tipo    | Descripción                                                                                                       | Valor por Defecto  |
+| ---------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `adapter.ecs.logs.print-on-error.print-req-resp`     | Boolean | Activa la impresión condicional de request/response solo en errores                                               | `null` (desactivado) |
+| `adapter.ecs.logs.print-on-error.print-req-resp-level` | String  | Nivel único de excepción que dispara la impresión. Valores permitidos: `BusinessExceptionECS`, `Exception`, `Throwable` | `null`             |
+
+### Comportamiento
+
+| `print-on-error.print-req-resp` | `print-on-error.print-req-resp-level` | Resultado                                                                        |
+| ----------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| `null` / `false`              | —                                   | Comportamiento estándar (usa `request.show`, `response.show` y sampling normalmente) |
+| `true`                        | `"Throwable"`                       | Imprime request/response para cualquier `Throwable`                              |
+| `true`                        | `"Exception"`                       | Imprime request/response para cualquier `Exception` (incluye `BusinessExceptionECS`) |
+| `true`                        | `"BusinessExceptionECS"`            | Imprime request/response solo para `BusinessExceptionECS` y subclases            |
+| `true`                        | `null` | ""                         | No imprime nada                                                                  |
+
+### Precedencia y efectos
+
+Cuando `print-on-error.print-req-resp: true`:
+
+- **Desactiva `request.show` y `response.show`**: La impresión de body pasa a ser controlada exclusivamente por esta funcionalidad.
+- **Suspende el sampling**: Las reglas de muestreo (`rules20XJson`, `rules40XJson`) no aplican. Los errores que coincidan con el nivel configurado siempre se imprimen.
+- **Excluded paths**: Siguen funcionando normalmente (se aplican antes de la lógica de `print-on-error`).
+- **Validación temprana**: Si `print-req-resp-level` tiene un valor diferente a `BusinessExceptionECS`, `Exception` o `Throwable`, la aplicación falla en la inicialización de configuración con un mensaje explícito.
+
+### Coincidencia de errores
+
+La coincidencia se realiza con un **nivel único jerárquico** definido en `print-on-error.print-req-resp-level`. Ejemplos:
+
+- `"BusinessExceptionECS"` → coincide con `BusinessExceptionECS` y todas sus subclases (ej. `BusinessException` del MS consumidor)
+- `"Exception"` → coincide con todas las excepciones
+- `"Throwable"` → coincide con todas las implementaciones de la interfaz Throwable (ej. excepciones, errores)
+- `null` o `""` → no coincide con ningún error, no se imprime nada
+
+### Ejemplo de uso
+
+Para imprimir request/response **solo cuando ocurra un `BusinessExceptionECS`**:
+
+```yaml
+adapter:
+  ecs:
+    logs:
+      print-on-error:
+        print-req-resp: true
+        print-req-resp-level: "BusinessExceptionECS"
+```
+
+# Contrato del Esquema de Logs ECS
+
+Definición de la estructura de los logs generados por la Librería de Logging ECS. A continuación, se describe la estructura de los logs para los niveles `INFO` y `ERROR`, especificando los campos, sus tipos de datos y su obligatoriedad.
 
 ---
 
+## Estructura General del Log
 
-## Sequence Diagram
+| Campo          | Tipo de Dato  | Descripción                                                      | Obligatorio |
+| -------------- | ------------- | ---------------------------------------------------------------- | ----------- |
+| messageId      | String (UUID) | Identificador único del mensaje en formato UUID.                 | Sí          |
+| date           | String        | Fecha y hora del evento en formato `DD/MM/YYYY HH:MM:SS:SSSS`.   | Sí          |
+| service        | String        | Nombre del servicio que genera el log (ej. `ms_actor`).          | Sí          |
+| consumer       | String        | Identificador del consumidor o cliente que realiza la solicitud. | Sí          |
+| additionalInfo | Object        | Información adicional sobre la solicitud (ver detalle abajo).    | Sí          |
+| level          | String        | Nivel del log (`INFO` o `ERROR`).                                | Sí          |
+| error          | Object/Null   | Detalles del error (presente en logs `ERROR`, `null` en `INFO`). | No          |
 
-### Reactive Java
+---
+
+## Detalle de `additionalInfo`
+
+### Campos principales
+
+| Campo          | Tipo de Dato | Descripción                                     | Obligatorio | Notas                       |
+| -------------- | ------------ | ----------------------------------------------- | ----------- | --------------------------- |
+| method         | String       | Método HTTP utilizado (ej. `POST`, `GET`).      | Sí          |                             |
+| uri            | String       | URI de la solicitud (ej. `/actors/retrieveUser`). | Sí          |                             |
+| headers        | Object       | Cabeceras HTTP de la solicitud.                 | Sí          | Ver detalle de subcampos.   |
+| requestBody    | Object       | Cuerpo de la solicitud.                         | Sí          | Varía según el tipo de log. |
+| responseBody   | Object/Null  | Cuerpo de la respuesta.                         | No          | Presente en logs `INFO`.    |
+| responseResult | String       | Resultado de la respuesta (ej. `OK`).           | Sí          |                             |
+| responseCode   | String       | Código de estado HTTP (ej. `200`, `400`).       | Sí          |                             |
+
+---
+
+### Subcampos de `headers`
+
+| Campo       | Tipo de Dato  | Descripción                      | Obligatorio | Notas                                 |
+| ----------- | ------------- | -------------------------------- | ----------- | ------------------------------------- |
+| code        | String        | Código del consumidor (ej. `CAP`). | No          | Coincide con `consumer` en la raíz.   |
+| message-id  | String (UUID) | Identificador del mensaje.       | Sí          | Coincide con `messageId` en la raíz.  |
+| aid-creator | String        | Identificador del creador.       | No          | Ej. `A8A77339260DA412B8238F21BBC1CF398` |
+
+---
+
+### Subcampos de `requestBody`
+
+#### Para logs en el que nos e puede convertir el body en json
+
+| Campo | Tipo de Dato | Descripción                              | Obligatorio |
+| ----- | ------------ | ---------------------------------------- | ----------- |
+| raw   | String       | Cuerpo de la solicitud como texto plano. | No          |
+
+| Campo                 | Tipo de Dato  | Descripción                      | Obligatorio |
+| --------------------- | ------------- | -------------------------------- | ----------- |
+| meta                  | Object        | Metadatos de la respuesta.       | No          |
+| meta.\_messageId      | String (UUID) | Identificador único del mensaje. | No          |
+| meta.\_requestDateTime | String        | Fecha y hora de la solicitud.    | No          |
+| data                  | Object        | Datos de la respuesta.           | No          |
+
+---
+
+### Subcampos de `responseBody` (Solo logs `INFO`)
+
+#### Para logs en el que nos e puede convertir el body en json
+
+| Campo | Tipo de Dato | Descripción                              | Obligatorio |
+| ----- | ------------ | ---------------------------------------- | ----------- |
+| raw   | String       | Cuerpo de la solicitud como texto plano. | No          |
+
+| Campo                 | Tipo de Dato  | Descripción                      | Obligatorio |
+| --------------------- | ------------- | -------------------------------- | ----------- |
+| meta                  | Object        | Metadatos de la respuesta.       | No          |
+| meta.\_messageId      | String (UUID) | Identificador único del mensaje. | No          |
+| meta.\_requestDateTime | String        | Fecha y hora de la solicitud.    | No          |
+| data                  | Object        | Datos de la respuesta.           | No          |
+
+---
+
+## Detalle de `error` (Solo logs `ERROR`)
+
+| Campo                 | Tipo de Dato | Descripción                                | Obligatorio |
+| --------------------- | ------------ | ------------------------------------------ | ----------- |
+| type                  | String       | Código del error (ej. `SAER400-01-11`).    | Sí          |
+| message               | String       | Mensaje descriptivo del error.             | Sí          |
+| description           | String       | Descripción detallada del error.           | Sí          |
+| optionalInfo          | Object       | Información adicional del error.           | No          |
+| optionalInfo.OPTIONAL | String       | Detalle adicional. Ej. falta de cabeceras. | No          |
+
+---
+
+## Diagrama de Secuencia
+
+### Java Reactivo
 
 ![Diagram](./docs/secuencia_reactivo.png)
 
 ---
 
-### Imperative Java
+### Java Imperativo
 
 ![Diagram](./docs/secuencia_imperativo.png)
-
-## Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-    ```
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-    ``` bash
-   ./gradlew test
-    ```
-6. Commit your changes
-    ```bash
-   git commit -m 'feat(user_module): Add amazing feature'
-    ```
-7. Push to the branch
-    ```bash
-   git push origin feature/amazing-feature
-    ```
-8. Open a **Pull Request**
-
-### Development Guidelines
-
-- Follow Java naming conventions
-- Write comprehensive tests for new features
-- Update documentation for API changes
-- Ensure code passes all quality checks
-- Add typespecs for public functions

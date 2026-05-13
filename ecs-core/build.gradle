@@ -1,11 +1,16 @@
 dependencies {
     // Core dependencies
     api project(':ecs-model')
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${fasterxmlJacksonCoreVersion}"
     implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
 
     // Spring configuration
     implementation("org.springframework.boot:spring-boot")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation "org.springframework:spring-web"
+    implementation "io.projectreactor:reactor-core"
+    implementation "io.micrometer:context-propagation"
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}")
 }
 
 ext {

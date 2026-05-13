@@ -2,6 +2,8 @@ package co.com.bancolombia.ecs.application;
 
 import co.com.bancolombia.ecs.application.filter.ImperativeLogsHandler;
 import co.com.bancolombia.ecs.infra.config.EcsPropertiesConfig;
+import co.com.bancolombia.ecs.infra.config.PrintOnErrorProperties;
+import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveRequestProperties;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveResponseProperties;
 import co.com.bancolombia.ecs.infra.config.service.ServiceProperties;
@@ -17,11 +19,12 @@ public class ImperativeLogsConfiguration {
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     @ConditionalOnClass(Filter.class)
-    public ImperativeLogsHandler imperativeLogsHandler(
-        ServiceProperties serviceProps,
-        SensitiveRequestProperties requestProps,
-        SensitiveResponseProperties responseProps) {
-        EcsPropertiesConfig config = new EcsPropertiesConfig(serviceProps, requestProps, responseProps);
-        return new ImperativeLogsHandler(config);
+    public ImperativeLogsHandler imperativeLogsHandler(ServiceProperties serviceProps,
+                                                       SensitiveRequestProperties requestProps,
+                                                       SensitiveResponseProperties responseProps,
+                                                       PrintOnErrorProperties printOnErrorProperties,
+                                                       MessageIdMngUseCase messageIdMngUseCase) {
+        var config = new EcsPropertiesConfig(serviceProps, requestProps, responseProps, printOnErrorProperties);
+        return new ImperativeLogsHandler(config, messageIdMngUseCase);
     }
 }
