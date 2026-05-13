@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.0](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.0) (2026-05-13)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.0.0...v2.1.0)
+
+**Merged pull requests:**
+
+- feat: Add messageID management [\#12](https://github.com/bancolombia/ecs-logs-java/pull/12) ([avendanodanny](https://github.com/avendanodanny))
+
 ## [v2.0.0](https://github.com/bancolombia/ecs-logs-java/tree/v2.0.0) (2026-02-17)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v1.0.1...v2.0.0)
