@@ -61,9 +61,9 @@ class MessageIdMngUseCaseTest {
 
 
     @Test
-    void shouldGenerateUuidWhenFlagIsNullAndNoHeader() {
+    void shouldReturnNullWhenFlagIsNullAndNoHeader() {
         MessageIdMngUseCase useCaseNullFlag = new MessageIdMngUseCase(new MessageIdRequestProperties(null));
-        assertNotNull(useCaseNullFlag.resolveFromRequestEnvironment(null));
+        assertNull(useCaseNullFlag.resolveFromRequestEnvironment(null));
     }
 
     @Test
@@ -72,11 +72,9 @@ class MessageIdMngUseCaseTest {
         assertEquals("from-client", useCaseNullFlag.resolveFromRequestEnvironment("from-client"));
     }
 
-    // ── resolveFromRequest con flag=false ─────────────────────────────────────
 
     @Test
     void shouldReturnNullWhenFlagIsFalseAndNoHeader() {
-        // flag=false: no genera UUID, solo propaga si el cliente lo envía
         MessageIdMngUseCase useCaseFalse = new MessageIdMngUseCase(propsDisabled());
         assertNull(useCaseFalse.resolveFromRequestEnvironment(null));
     }
@@ -85,5 +83,28 @@ class MessageIdMngUseCaseTest {
     void shouldPropagateHeaderWhenFlagIsFalseAndHeaderPresent() {
         MessageIdMngUseCase useCaseFalse = new MessageIdMngUseCase(propsDisabled());
         assertEquals("from-client", useCaseFalse.resolveFromRequestEnvironment("from-client"));
+    }
+
+    @Test
+    void shouldNotThrowWhenValueIsBlank() {
+        MessageIdRequestProperties props = new MessageIdRequestProperties("   ");
+        assertDoesNotThrow(props::afterPropertiesSet);
+        assertNull(props.getEnabled());
+    }
+
+    @Test
+    void shouldReturnNullWhenFlagIsBlankAndNoHeader() {
+        MessageIdRequestProperties props = new MessageIdRequestProperties("");
+        props.afterPropertiesSet();
+        MessageIdMngUseCase useCaseBlankFlag = new MessageIdMngUseCase(props);
+        assertNull(useCaseBlankFlag.resolveFromRequestEnvironment(null));
+    }
+
+    @Test
+    void shouldPropagateHeaderWhenFlagIsBlankAndHeaderPresent() {
+        MessageIdRequestProperties props = new MessageIdRequestProperties("");
+        props.afterPropertiesSet();
+        MessageIdMngUseCase useCaseBlankFlag = new MessageIdMngUseCase(props);
+        assertEquals("from-client", useCaseBlankFlag.resolveFromRequestEnvironment("from-client"));
     }
 }

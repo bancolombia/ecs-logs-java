@@ -268,13 +268,16 @@ adapter:
 
 ### Comportamiento según configuración
 
-| Valor YAML     | Header enviado por el cliente | Header ausente en request      | Excepción sin `message-id` previo |
-| -------------- | ----------------------------- | ------------------------------ | ------------------------------- |
-| *(no declarada)* | Se propaga tal como viene     | Se genera UUID automáticamente | Se genera UUID siempre          |
-| `"false"`      | Se propaga tal como viene     | No se genera UUID (`null`)     | Se genera UUID siempre          |
-| `"true"`       | Se propaga tal como viene     | Se genera UUID automáticamente | Se genera UUID siempre          |
+| Valor YAML                    | Header enviado por el cliente | Header ausente en request      | Excepción sin `message-id` previo |
+| ------------------------------ | ----------------------------- | ------------------------------ | ------------------------------- |
+| *(no declarada)*               | Se propaga tal como viene     | No se genera UUID (`null`)     | Se genera UUID siempre          |
+| *(declarada sin valor / blanco)* | Se propaga tal como viene   | No se genera UUID (`null`)     | Se genera UUID siempre          |
+| `"false"`                      | Se propaga tal como viene     | No se genera UUID (`null`)     | Se genera UUID siempre          |
+| `"true"`                       | Se propaga tal como viene     | Se genera UUID automáticamente | Se genera UUID siempre          |
 
 > El header del cliente **siempre se propaga**, independientemente del valor configurado. La diferencia entre modos solo aplica cuando el cliente **no** envía el header.
+
+> **Clave declarada sin valor:** si el microservicio consumidor escribe `enable_auto_register_message_id:` en su YAML sin asignarle un valor, Spring Boot la enlaza como cadena vacía (`""`), no como `null`. La librería trata ese caso igual que la propiedad no declarada: **no falla al arrancar** y el comportamiento por defecto es inactivo.
 
 > Las **excepciones siempre tienen trazabilidad**: `resolveForException` genera UUID incondicionalmente cuando no hay un `message-id` previo, sin importar el valor de `enable_auto_register_message_id`.
 

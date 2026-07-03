@@ -1,13 +1,13 @@
 buildscript {
-	ext {
-		cleanArchitectureVersion = '3.26.1'
-		springBootVersion = '3.5.4'
-		sonarVersion = '6.3.1.5724'
-		jacocoVersion = '0.8.13'
-		pitestVersion = '1.19.0-rc.1'
+    ext {
+        cleanArchitectureVersion = '3.26.1'
+        springBootVersion = '3.5.15'
+        sonarVersion = '6.3.1.5724'
+        jacocoVersion = '0.8.13'
+        pitestVersion = '1.19.0-rc.1'
         lombokVersion = '1.18.38'
-        ecsversion = '1.2.1'
-	}
+        ecsversion = '2.1.0'
+    }
 }
 
 plugins {
