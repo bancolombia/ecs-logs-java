@@ -14,7 +14,6 @@ class MessageIdMngValidatorTest {
     private static final String PROPERTY_KEY =
             "adapter.ecs.logs.message-id.enable_auto_register_message_id";
 
-    // ── Valores inválidos ─────────────────────────────────────────────────────
 
     @ParameterizedTest
     @ValueSource(strings = {"1", "0", "yes", "no", "on", "off", "maybe", "2", "si", "verdadero"})
@@ -29,7 +28,6 @@ class MessageIdMngValidatorTest {
                 "El mensaje de error debe indicar los valores aceptados");
     }
 
-    // ── Valores válidos ───────────────────────────────────────────────────────
 
     @ParameterizedTest
     @ValueSource(strings = {"true", "false", "TRUE", "FALSE", "True", "False"})
@@ -42,10 +40,18 @@ class MessageIdMngValidatorTest {
 
     @Test
     void shouldAcceptNullValue() {
-        // null = propiedad no configurada → feature desactivada, no debe lanzar excepción
         assertDoesNotThrow(
                 () -> MessageIdMngValidator.validate(null, PROPERTY_KEY),
                 "null debe ser aceptado (feature desactivada)"
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "   ", "\t"})
+    void shouldAcceptBlankValue(String blankValue) {
+        assertDoesNotThrow(
+                () -> MessageIdMngValidator.validate(blankValue, PROPERTY_KEY),
+                "Un valor en blanco debe ser aceptado igual que la propiedad no declarada"
         );
     }
 }

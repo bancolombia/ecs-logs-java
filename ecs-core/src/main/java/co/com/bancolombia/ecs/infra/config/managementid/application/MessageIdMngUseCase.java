@@ -52,13 +52,14 @@ public class MessageIdMngUseCase {
     /**
      * Resuelve el messageId para una petición entrante a partir del valor raw del header.
      * <ul>
-     *   <li>{@code true}  – genera UUID si el header está ausente o en blanco.</li>
-     *   <li>{@code true/null} – genera UUID si el header está ausente o en blanco.</li>
-     *   <li>{@code false}      – devuelve el header tal como llega; {@code null} si no hay header.</li>
+     *   <li>{@code true}       – genera UUID si el header está ausente o en blanco.</li>
+     *   <li>{@code false/null} – devuelve el header tal como llega; {@code null} si no hay header.
+     *                           {@code null} cubre tanto la propiedad no registrada como un
+     *                           valor en blanco declarado en el YAML: ambos son inactivos por defecto.</li>
      * </ul>
      */
     public String resolveFromRequestEnvironment(String incomingHeaderValue) {
-        if (!Boolean.FALSE.equals(enabledFlag)) {
+        if (Boolean.TRUE.equals(enabledFlag)) {
             return Optional.ofNullable(incomingHeaderValue)
                     .filter(Predicate.not(String::isBlank))
                     .orElseGet(() -> UUID.randomUUID().toString());
