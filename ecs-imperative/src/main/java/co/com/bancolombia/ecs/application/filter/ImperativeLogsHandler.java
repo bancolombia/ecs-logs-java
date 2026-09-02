@@ -1,6 +1,5 @@
 package co.com.bancolombia.ecs.application.filter;
 
-import co.com.bancolombia.ecs.domain.model.LogRecord;
 import co.com.bancolombia.ecs.infra.shared.common.domain.ContextECS;
 import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
 import co.com.bancolombia.ecs.domain.model.ExceptionLevel;
@@ -187,7 +186,7 @@ public class ImperativeLogsHandler extends OncePerRequestFilter {
         Map<String, String> headers = DataSanitizer.sanitizeHeaders(requestHeaders,
             ecsPropertiesConfig.getAllowRequestHeaders());
         HandlerHelper.setConsumer(logRequest, headers);
-        logRequest.setMessageId(headers.get(LogRecord.MESSAGE_ID));
+        logRequest.setMessageId(ContextECS.getMessageId());
         logRequest.setHeaders(headers);
     }
 

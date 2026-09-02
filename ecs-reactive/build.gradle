@@ -18,8 +18,13 @@ dependencies {
     // Reactor project
     implementation "io.projectreactor:reactor-core:${reactorVersion}"
     testImplementation "io.projectreactor:reactor-test:${reactorVersion}"
+    testImplementation "io.projectreactor.tools:blockhound-junit-platform:1.0.13.RELEASE"
 
     implementation "com.fasterxml.jackson.core:jackson-databind:${fasterxmlJacksonCoreVersion}"
+}
+
+test {
+    jvmArgs += ["-XX:+AllowRedefinitionToAddDeleteMethods"]
 }
 
 ext {

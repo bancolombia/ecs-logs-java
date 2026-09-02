@@ -5,6 +5,9 @@ import co.com.bancolombia.ecs.domain.model.ExceptionLevel;
 import co.com.bancolombia.ecs.infra.config.EcsPropertiesConfig;
 import co.com.bancolombia.ecs.infra.config.PrintOnErrorProperties;
 import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
+import co.com.bancolombia.ecs.infra.config.managementid.domain.MessageIdRequestProperties;
+import co.com.bancolombia.ecs.infra.shared.common.domain.ContextECS;
+import co.com.bancolombia.ecs.domain.model.LogRecord;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveRequestProperties;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveResponseProperties;
 import co.com.bancolombia.ecs.infra.config.service.ServiceProperties;
@@ -44,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
@@ -414,6 +418,140 @@ class ImperativeLogsHandlerTest {
         assertDoesNotThrow(() -> imperativeLogsHandler.doFilter(wrappedRequest, wrappedResponse, filterChain));
 
         verify(filterChain).doFilter(any(), any());
+    }
+
+    @Test
+    void testShouldUseUseCaseResolvedMessageIdWhenHeaderArrivesEmpty() throws ServletException, IOException {
+        mocksPropertiesConfig(true, true);
+        mockRequest.setRequestURI("/api/test");
+        mockRequest.setMethod("GET");
+        mockRequest.addHeader("message-id", "");
+        when(messageIdMngUseCase.resolveFromHeaders(any(), any())).thenReturn("generated-uuid-1234");
+        wrappedResponse.setStatus(HttpStatus.OK.value());
+        wrappedResponse.getWriter().write("{\"result\":\"ok\"}");
+        AtomicReference<LogRequest> capturedRequest = new AtomicReference<>();
+
+        try (MockedStatic<co.com.bancolombia.ecs.infra.EcsImperativeLogger> mockedLogger =
+                     Mockito.mockStatic(co.com.bancolombia.ecs.infra.EcsImperativeLogger.class)) {
+            mockedLogger.when(() -> co.com.bancolombia.ecs.infra.EcsImperativeLogger.build(
+                            Mockito.any(LogRequest.class), Mockito.anyString()))
+                    .thenAnswer(invocation -> {
+                        capturedRequest.set(invocation.getArgument(0));
+                        return null;
+                    });
+
+            assertDoesNotThrow(() ->
+                    imperativeLogsHandler.doFilter(wrappedRequest, wrappedResponse, filterChain));
+        }
+
+        verify(filterChain).doFilter(any(), any());
+        assertNotNull(capturedRequest.get());
+        assertEquals("generated-uuid-1234", capturedRequest.get().getMessageId());
+    }
+
+    @Test
+    void testShouldNotForceMessageIdWhenUseCaseResolvesNull() throws ServletException, IOException {
+        mocksPropertiesConfig(true, true);
+        mockRequest.setRequestURI("/api/test");
+        mockRequest.setMethod("GET");
+        when(messageIdMngUseCase.resolveFromHeaders(any(), any())).thenReturn(null);
+        wrappedResponse.setStatus(HttpStatus.OK.value());
+        wrappedResponse.getWriter().write("{\"result\":\"ok\"}");
+        AtomicReference<LogRequest> capturedRequest = new AtomicReference<>();
+
+        try (MockedStatic<co.com.bancolombia.ecs.infra.EcsImperativeLogger> mockedLogger =
+                     Mockito.mockStatic(co.com.bancolombia.ecs.infra.EcsImperativeLogger.class)) {
+            mockedLogger.when(() -> co.com.bancolombia.ecs.infra.EcsImperativeLogger.build(
+                            Mockito.any(LogRequest.class), Mockito.anyString()))
+                    .thenAnswer(invocation -> {
+                        capturedRequest.set(invocation.getArgument(0));
+                        return null;
+                    });
+
+            assertDoesNotThrow(() ->
+                    imperativeLogsHandler.doFilter(wrappedRequest, wrappedResponse, filterChain));
+        }
+
+        verify(filterChain).doFilter(any(), any());
+        assertNotNull(capturedRequest.get());
+        assertNull(capturedRequest.get().getMessageId());
+    }
+
+    @Test
+    void testShouldNotExposeContextButShouldStillLogGeneratedMessageIdWhenDisabledAndHeaderEmpty()
+            throws ServletException, IOException {
+        mocksPropertiesConfig(true, true);
+        MessageIdRequestProperties disabledProperties = new MessageIdRequestProperties("false");
+        disabledProperties.afterPropertiesSet();
+        MessageIdMngUseCase realUseCase = new MessageIdMngUseCase(disabledProperties);
+        imperativeLogsHandler = new ImperativeLogsHandler(ecsPropertiesConfig, realUseCase);
+
+        mockRequest.setRequestURI("/api/test");
+        mockRequest.setMethod("GET");
+        mockRequest.addHeader("message-id", "");
+        wrappedResponse.setStatus(HttpStatus.OK.value());
+        wrappedResponse.getWriter().write("{\"result\":\"ok\"}");
+
+        AtomicReference<String> contextDuringChain = new AtomicReference<>();
+        doAnswer(invocation -> {
+            contextDuringChain.set(ContextECS.getMessageId());
+            return null;
+        }).when(filterChain).doFilter(any(), any());
+
+        AtomicReference<LogRecord> capturedRecord = new AtomicReference<>();
+        try (MockedStatic<co.com.bancolombia.ecs.application.LoggerEcs> mockedLogger =
+                     Mockito.mockStatic(co.com.bancolombia.ecs.application.LoggerEcs.class)) {
+            mockedLogger.when(() -> co.com.bancolombia.ecs.application.LoggerEcs.print(Mockito.any()))
+                    .thenAnswer(invocation -> {
+                        capturedRecord.set(invocation.getArgument(0));
+                        return null;
+                    });
+
+            assertDoesNotThrow(() ->
+                    imperativeLogsHandler.doFilter(wrappedRequest, wrappedResponse, filterChain));
+        }
+
+        verify(filterChain).doFilter(any(), any());
+        assertNull(contextDuringChain.get(),
+                "con enable_auto_register_message_id=false y header vacio, ContextECS no debe exponer messageId");
+        assertNotNull(capturedRecord.get());
+        String loggedMessageId = capturedRecord.get().getMessageId();
+        assertFalse(loggedMessageId == null || loggedMessageId.isBlank(),
+                "el log final nunca debe quedar con messageId vacio, sin importar el flag");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"true", "false"})
+    void testShouldAlwaysUseRealHeaderMessageIdRegardlessOfFlag(String flagValue)
+            throws ServletException, IOException {
+        mocksPropertiesConfig(true, true);
+        MessageIdRequestProperties properties = new MessageIdRequestProperties(flagValue);
+        properties.afterPropertiesSet();
+        MessageIdMngUseCase realUseCase = new MessageIdMngUseCase(properties);
+        imperativeLogsHandler = new ImperativeLogsHandler(ecsPropertiesConfig, realUseCase);
+
+        mockRequest.setRequestURI("/api/test");
+        mockRequest.setMethod("GET");
+        mockRequest.addHeader("message-id", "77c5a83c-f98f-4c10-a75b-d58f993ef72b");
+        wrappedResponse.setStatus(HttpStatus.OK.value());
+        wrappedResponse.getWriter().write("{\"result\":\"ok\"}");
+
+        AtomicReference<LogRecord> capturedRecord = new AtomicReference<>();
+        try (MockedStatic<co.com.bancolombia.ecs.application.LoggerEcs> mockedLogger =
+                     Mockito.mockStatic(co.com.bancolombia.ecs.application.LoggerEcs.class)) {
+            mockedLogger.when(() -> co.com.bancolombia.ecs.application.LoggerEcs.print(Mockito.any()))
+                    .thenAnswer(invocation -> {
+                        capturedRecord.set(invocation.getArgument(0));
+                        return null;
+                    });
+
+            assertDoesNotThrow(() ->
+                    imperativeLogsHandler.doFilter(wrappedRequest, wrappedResponse, filterChain));
+        }
+
+        verify(filterChain).doFilter(any(), any());
+        assertNotNull(capturedRecord.get());
+        assertEquals("77c5a83c-f98f-4c10-a75b-d58f993ef72b", capturedRecord.get().getMessageId());
     }
 
     private void mocksPropertiesConfig(boolean showRequest, boolean showResponse) {

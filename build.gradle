@@ -1,24 +1,25 @@
 buildscript {
     ext {
         cleanArchitectureVersion = '4.0.4'
-        springBootVersion = '4.0.6'
+        springBootVersion = '4.0.7'
         sonarVersion = '6.0.1.5171'
         jacocoVersion = '0.8.12'
         pitestVersion = '1.15.0'
         lombokVersion = '1.18.38'
         junitVersion = '5.12.2'
         reactorVersion = '3.7.6'
-        fasterxmlJacksonCoreVersion = '2.21.4'
-        toolsJacksonCoreVersion = '3.1.4'
-        log4jVersion = '2.25.4'
+        fasterxmlJacksonCoreVersion = '2.21.5'
+        toolsJacksonCoreVersion = '3.1.5'
+        log4jVersion = '2.25.5'
         commonslang3= '3.18.0'
-        nettyVersion = '4.1.135.Final'
-        netty2Version = '4.2.15.Final'
-        logbackVersion = '1.5.33'
+        nettyVersion = '4.1.137.Final'
+        netty2Version = '4.2.16.Final'
+        logbackVersion = '1.5.34'
         tomcatEmbedCoreVersion = "10.1.56"
         assertjCoreVersion = "3.27.7"
-        springWebfluxVersion = "7.0.7"
-        springWebmvcVersion = "7.0.7"
+        springWebfluxVersion = "7.0.8"
+        springWebmvcVersion = "7.0.8"
+        springFrameworkVersion = "7.0.8"
     }
 }
 

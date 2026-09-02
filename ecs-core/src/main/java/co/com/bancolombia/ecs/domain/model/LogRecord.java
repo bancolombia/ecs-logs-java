@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.UUID;
+
+import co.com.bancolombia.ecs.model.helpers.NonBlockingIdGenerator;
 
 import static aQute.bnd.annotation.headers.Category.json;
 
@@ -29,7 +30,7 @@ public class LogRecord<T, R> {
     public static final String MESSAGE_ID = "message-id";
     @Builder.Default
     @JsonProperty(MESSAGE_ID)
-    private String messageId = UUID.randomUUID().toString();
+    private String messageId = NonBlockingIdGenerator.randomUuid();
     @Builder.Default
     private String date = currentDate();
     private String service;
