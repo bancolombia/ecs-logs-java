@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.2](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.2) (2026-09-02)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.1...v2.1.2)
+
+**Merged pull requests:**
+
+- fix: A bug ecs [\#15](https://github.com/bancolombia/ecs-logs-java/pull/15) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.1](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.1) (2026-09-02)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.0...v2.1.1)
