@@ -1,6 +1,5 @@
 package co.com.bancolombia.ecs.application.filter;
 
-import co.com.bancolombia.ecs.domain.model.LogRecord;
 import co.com.bancolombia.ecs.infra.shared.common.domain.ContextECS;
 import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
 import co.com.bancolombia.ecs.domain.model.ExceptionLevel;
@@ -213,7 +212,6 @@ public class ReactiveLogsHandler implements WebFilter {
         Map<String, String> sanitizeHeaders = DataSanitizer.sanitizeHeaders(headers,
                 ecsPropertiesConfig.getAllowRequestHeaders());
         HandlerHelper.setConsumer(requestInfo, sanitizeHeaders);
-        requestInfo.setMessageId(sanitizeHeaders.get(LogRecord.MESSAGE_ID));
         requestInfo.setHeaders(sanitizeHeaders);
     }
 

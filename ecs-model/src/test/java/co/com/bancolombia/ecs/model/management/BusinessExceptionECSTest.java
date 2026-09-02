@@ -8,6 +8,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class BusinessExceptionECSTest {
 
@@ -180,6 +181,38 @@ class BusinessExceptionECSTest {
         String id1 = BusinessExceptionECS.MetaInfo.builder().build().getMessageId();
         String id2 = BusinessExceptionECS.MetaInfo.builder().build().getMessageId();
         assertNotEquals(id1, id2);
+    }
+
+    @Test
+    void testConstructorWithNullMessageIdInMetaInfoGeneratesOne() {
+        ErrorManagement err = ErrorManagement.DEFAULT_EXCEPTION;
+        BusinessExceptionECS.MetaInfo meta = BusinessExceptionECS.MetaInfo.builder()
+                .messageId(null)
+                .build();
+        BusinessExceptionECS ex = new BusinessExceptionECS(err, meta);
+        assertNotNull(ex.getMetaInfo().getMessageId());
+        assertFalse(ex.getMetaInfo().getMessageId().isBlank());
+    }
+
+    @Test
+    void testConstructorWithBlankMessageIdInMetaInfoGeneratesOne() {
+        ErrorManagement err = ErrorManagement.DEFAULT_EXCEPTION;
+        BusinessExceptionECS.MetaInfo meta = BusinessExceptionECS.MetaInfo.builder()
+                .messageId("   ")
+                .build();
+        BusinessExceptionECS ex = new BusinessExceptionECS(err, "optional", meta);
+        assertNotNull(ex.getMetaInfo().getMessageId());
+        assertFalse(ex.getMetaInfo().getMessageId().isBlank());
+    }
+
+    @Test
+    void testConstructorWithValidMessageIdInMetaInfoIsPreserved() {
+        ErrorManagement err = ErrorManagement.DEFAULT_EXCEPTION;
+        BusinessExceptionECS.MetaInfo meta = BusinessExceptionECS.MetaInfo.builder()
+                .messageId("explicit-message-id")
+                .build();
+        BusinessExceptionECS ex = new BusinessExceptionECS(err, meta);
+        assertEquals("explicit-message-id", ex.getMetaInfo().getMessageId());
     }
 
 }

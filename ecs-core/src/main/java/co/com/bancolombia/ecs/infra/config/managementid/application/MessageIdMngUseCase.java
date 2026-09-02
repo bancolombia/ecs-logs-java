@@ -1,6 +1,7 @@
 package co.com.bancolombia.ecs.infra.config.managementid.application;
 
 import co.com.bancolombia.ecs.helpers.DataSanitizer;
+import co.com.bancolombia.ecs.model.helpers.NonBlockingIdGenerator;
 import co.com.bancolombia.ecs.infra.config.managementid.domain.MessageIdRequestProperties;
 import co.com.bancolombia.ecs.infra.shared.common.domain.ContextECS;
 import lombok.extern.log4j.Log4j2;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -62,7 +62,7 @@ public class MessageIdMngUseCase {
         if (Boolean.TRUE.equals(enabledFlag)) {
             return Optional.ofNullable(incomingHeaderValue)
                     .filter(Predicate.not(String::isBlank))
-                    .orElseGet(() -> UUID.randomUUID().toString());
+                    .orElseGet(NonBlockingIdGenerator::randomUuid);
         }
         return (incomingHeaderValue != null && !incomingHeaderValue.isBlank())
                 ? incomingHeaderValue
@@ -83,8 +83,7 @@ public class MessageIdMngUseCase {
                 .filter(s -> s != null && !s.isBlank())
                 .findFirst()
                 .orElse(null);
-        return (resolved != null) ? resolved:
-                UUID.randomUUID().toString();
+        return (resolved != null) ? resolved : NonBlockingIdGenerator.randomUuid();
     }
 
 

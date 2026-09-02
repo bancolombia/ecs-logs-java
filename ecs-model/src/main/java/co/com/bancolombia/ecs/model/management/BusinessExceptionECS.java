@@ -1,5 +1,6 @@
 package co.com.bancolombia.ecs.model.management;
 
+import co.com.bancolombia.ecs.model.helpers.NonBlockingIdGenerator;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +8,6 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Setter
 @Getter
@@ -45,7 +45,7 @@ public class BusinessExceptionECS extends RuntimeException {
         super(validateMessage(message).getLogCode());
         this.constantBusinessException = validateMessage(message);
         this.optionalInfo = fillMap(EMPTY_VALUE);
-        this.metaInfo = (metaInfo != null) ? metaInfo : MetaInfo.builder().build();
+        this.metaInfo = validateMetaInfo(metaInfo);
     }
 
     public BusinessExceptionECS(ErrorManagement message, Map<String, String> optionalInfo) {
@@ -61,7 +61,7 @@ public class BusinessExceptionECS extends RuntimeException {
         this.optionalInfo = fillMap(optionalInfo != null
             ? optionalInfo
             : EMPTY_VALUE);
-        this.metaInfo = (metaInfo != null) ? metaInfo : MetaInfo.builder().build();
+        this.metaInfo = validateMetaInfo(metaInfo);
     }
 
     public BusinessExceptionECS(ErrorManagement message,
@@ -70,7 +70,7 @@ public class BusinessExceptionECS extends RuntimeException {
         super(validateMessage(message).getLogCode());
         this.constantBusinessException = validateMessage(message);
         this.optionalInfo = optionalInfo;
-        this.metaInfo = (metaInfo != null) ? metaInfo : MetaInfo.builder().build();
+        this.metaInfo = validateMetaInfo(metaInfo);
     }
 
     private static ErrorManagement validateMessage(ErrorManagement message) {
@@ -85,10 +85,16 @@ public class BusinessExceptionECS extends RuntimeException {
         return optionalInfoMap;
     }
 
+    private static MetaInfo validateMetaInfo(MetaInfo metaInfo) {
+        return (metaInfo != null && metaInfo.getMessageId() != null && !metaInfo.getMessageId().isBlank())
+            ? metaInfo
+            : MetaInfo.builder().messageId(NonBlockingIdGenerator.randomUuid()).build();
+    }
+
     @Builder
     @Getter
     public static class MetaInfo implements Serializable {
         @Builder.Default
-        private final String messageId = UUID.randomUUID().toString();
+        private final String messageId = NonBlockingIdGenerator.randomUuid();
     }
 }

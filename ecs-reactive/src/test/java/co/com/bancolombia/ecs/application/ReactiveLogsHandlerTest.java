@@ -5,6 +5,7 @@ import co.com.bancolombia.ecs.domain.model.ExceptionLevel;
 import co.com.bancolombia.ecs.infra.config.EcsPropertiesConfig;
 import co.com.bancolombia.ecs.infra.config.PrintOnErrorProperties;
 import co.com.bancolombia.ecs.infra.config.managementid.application.MessageIdMngUseCase;
+import co.com.bancolombia.ecs.infra.config.managementid.domain.MessageIdRequestProperties;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveRequestProperties;
 import co.com.bancolombia.ecs.infra.config.sensitive.SensitiveResponseProperties;
 import co.com.bancolombia.ecs.infra.config.service.ServiceProperties;
@@ -12,6 +13,8 @@ import co.com.bancolombia.ecs.model.management.BusinessExceptionECS;
 import co.com.bancolombia.ecs.model.management.ErrorManagement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,10 +38,14 @@ import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -532,6 +539,71 @@ class ReactiveLogsHandlerTest {
 
         StepVerifier.create(webHandler.filter(exchange, chain))
                 .verifyComplete();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"true", "false"})
+    void testShouldAlwaysUseRealHeaderMessageIdRegardlessOfFlag(String flagValue, CapturedOutput output) {
+        mocksPropertiesConfig();
+        MessageIdRequestProperties properties = new MessageIdRequestProperties(flagValue);
+        properties.afterPropertiesSet();
+        MessageIdMngUseCase realUseCase = new MessageIdMngUseCase(properties);
+        webHandler = new ReactiveLogsHandler(ecsPropertiesConfig, realUseCase);
+
+        URI uri = URI.create("/api/data");
+        mockExchange();
+        when(exchange.getRequest()).thenReturn(request);
+        when(exchange.getResponse()).thenReturn(response);
+        when(request.getURI()).thenReturn(uri);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("message-id", "77c5a83c-f98f-4c10-a75b-d58f993ef72b");
+        when(request.getHeaders()).thenReturn(headers);
+        when(request.getMethod()).thenReturn(HttpMethod.GET);
+
+        mockBodyFactory();
+        when(response.getStatusCode()).thenReturn(HttpStatus.OK);
+
+        WebFilterChain mockChain = mock(WebFilterChain.class);
+        when(mockChain.filter(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(webHandler.filter(exchange, mockChain))
+            .verifyComplete();
+
+        assertTrue(output.getOut().contains("\"message-id\":\"77c5a83c-f98f-4c10-a75b-d58f993ef72b\"}"));
+    }
+
+    @Test
+    void testShouldNotExposeContextButShouldStillLogGeneratedMessageIdWhenDisabledAndHeaderEmpty(
+            CapturedOutput output) {
+        mocksPropertiesConfig();
+        MessageIdRequestProperties disabledProperties = new MessageIdRequestProperties("false");
+        disabledProperties.afterPropertiesSet();
+        MessageIdMngUseCase realUseCase = new MessageIdMngUseCase(disabledProperties);
+        webHandler = new ReactiveLogsHandler(ecsPropertiesConfig, realUseCase);
+
+        URI uri = URI.create("/api/data");
+        mockExchange();
+        when(exchange.getRequest()).thenReturn(request);
+        when(exchange.getResponse()).thenReturn(response);
+        when(request.getURI()).thenReturn(uri);
+        when(request.getHeaders()).thenReturn(new HttpHeaders());
+        when(request.getMethod()).thenReturn(HttpMethod.GET);
+
+        mockBodyFactory();
+        when(response.getStatusCode()).thenReturn(HttpStatus.OK);
+
+        WebFilterChain mockChain = mock(WebFilterChain.class);
+        when(mockChain.filter(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(webHandler.filter(exchange, mockChain))
+            .verifyComplete();
+
+        verify(exchange, never()).getAttributes();
+
+        Pattern pattern = Pattern.compile("\"message-id\":\"([0-9a-f-]{36})\"\\}");
+        Matcher matcher = pattern.matcher(output.getOut());
+        assertTrue(matcher.find(),
+                "el log final debe traer un message-id con formato UUID, sin importar el flag");
     }
 
     private void mockBodyFactory() {

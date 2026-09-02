@@ -64,6 +64,10 @@ configurations.configureEach {
             details.useVersion("${log4jVersion}")
             details.because("CVE-2025-68161 fix")
         }
+        if (details.requested.group == 'org.apache.logging.log4j' && details.requested.name == 'log4j-api') {
+            details.useVersion("${log4jVersion}")
+            details.because("CVE-2026-49844 fix")
+        }
         if (details.requested.group == 'com.fasterxml.jackson.core' && details.requested.name == 'jackson-core') {
             details.useVersion("${fasterxmlJacksonCoreVersion}")
             details.because("GHSA-72hv-8253-57qq")
@@ -91,6 +95,18 @@ configurations.configureEach {
         if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-webmvc') {
             details.useVersion("${springWebmvcVersion}")
             details.because("CVE-2026-22737, CVE-2026-22735")
+        }
+        if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-core') {
+            details.useVersion("${springFrameworkVersion}")
+            details.because("CVE-2026-41848 fix")
+        }
+        if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-expression') {
+            details.useVersion("${springFrameworkVersion}")
+            details.because("CVE-2026-41850, CVE-2026-41851, CVE-2026-41852 fix")
+        }
+        if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-web') {
+            details.useVersion("${springFrameworkVersion}")
+            details.because("CVE-2026-41854 fix")
         }
     }
 }
