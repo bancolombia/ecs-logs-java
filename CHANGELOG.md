@@ -1,5 +1,14 @@
 # Changelog
 
+## [v2.1.1](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.1) (2026-09-02)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.0...v2.1.1)
+
+**Merged pull requests:**
+
+- fix: bug in the ecs Java library [\#14](https://github.com/bancolombia/ecs-logs-java/pull/14) ([AndreyRivera13](https://github.com/AndreyRivera13))
+- fix: permitir valores vacíos en librería en enable\_auto\_register\_message\_id [\#13](https://github.com/bancolombia/ecs-logs-java/pull/13) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.0](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.0) (2026-05-13)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.0.0...v2.1.0)
