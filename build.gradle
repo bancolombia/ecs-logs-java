@@ -1,7 +1,7 @@
 buildscript {
     ext {
         cleanArchitectureVersion = '4.0.4'
-        springBootVersion = '4.0.7'
+        springBootVersion = '4.1.1'
         sonarVersion = '6.0.1.5171'
         jacocoVersion = '0.8.12'
         pitestVersion = '1.15.0'
@@ -11,15 +11,15 @@ buildscript {
         fasterxmlJacksonCoreVersion = '2.21.5'
         toolsJacksonCoreVersion = '3.1.5'
         log4jVersion = '2.25.5'
-        commonslang3 = '3.18.0'
+        commonslang3= '3.18.0'
         nettyVersion = '4.1.137.Final'
-        netty2Version = '4.2.16.Final'
+        netty2Version = '4.2.17.Final'
         logbackVersion = '1.5.34'
-        tomcatEmbedCoreVersion = "10.1.56"
+        tomcatEmbedCoreVersion = "11.0.25"
         assertjCoreVersion = "3.27.7"
-        springWebfluxVersion = "7.0.8"
-        springWebmvcVersion = "7.0.8"
-        springFrameworkVersion = "7.0.8"
+        springWebfluxVersion = "7.0.9"
+        springWebmvcVersion = "7.0.9"
+        springFrameworkVersion = "7.0.9"
     }
 }
 
