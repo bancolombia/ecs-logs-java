@@ -143,8 +143,6 @@ subprojects {
     }
 
     //Publishing configuration
-    // Coordenadas en Maven Central: com.github.bancolombia (artefacto real) y
-    // co.com.bancolombia (relocation hacia la publica, para consumidores del banco).
     def publicGroupId = 'com.github.bancolombia'
     def legacyGroupId = 'co.com.bancolombia'
 
@@ -193,8 +191,6 @@ subprojects {
         }
     }
 
-    // Cada staging repo de Central esta atado a un namespace, asi que se publica en dos corridas:
-    // por defecto com.github.bancolombia (jar real); con -PpublishLegacy=true solo co.com.bancolombia (relocation).
     def publishLegacy = project.hasProperty('publishLegacy')
     tasks.withType(PublishToMavenRepository).configureEach {
         onlyIf { publication.name == (publishLegacy ? 'mavenJavaLegacy' : 'mavenJava') }

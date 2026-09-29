@@ -35,7 +35,6 @@ plugins {
     id 'jacoco'
 }
 nexusPublishing {
-    // Un staging repo por namespace: com.github.bancolombia (default) o co.com.bancolombia (-PpublishLegacy)
     packageGroup.set(project.hasProperty('publishLegacy') ? 'co.com.bancolombia' : 'com.github.bancolombia')
     repositories {
         sonatype {
