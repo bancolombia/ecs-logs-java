@@ -78,3 +78,20 @@ jobs:
           
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SECRET_MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SECRET_MAVEN_PASSWORD }}
+
+      - name: Publish co.com.bancolombia relocation to Maven Central
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository \
+            -PpublishLegacy=true \
+            -Pversion=${{ env.RELEASE_VERSION }} \
+            --no-daemon \
+            --stacktrace
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_FILE: ${{ secrets.SIGNING_KEY_FILE }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SECRET_MAVEN_USER }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SECRET_MAVEN_PASSWORD }}
