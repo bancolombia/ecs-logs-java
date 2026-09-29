@@ -78,3 +78,15 @@ jobs:
           
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SECRET_MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SECRET_MAVEN_PASSWORD }}
+
+      - name: Publish Libraries to Bancolombia Artifactory
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew publishAllPublicationsToBancolombiaArtifactoryRepository \
+            -Pversion=${{ env.RELEASE_VERSION }} \
+            --no-daemon \
+            --stacktrace
+        env:
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
