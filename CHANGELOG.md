@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.5](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.5) (2026-09-29)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.4...v2.1.5)
+
+**Merged pull requests:**
+
+- fix: add publish in azure devops [\#18](https://github.com/bancolombia/ecs-logs-java/pull/18) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.4](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.4) (2026-09-21)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.3...v2.1.4)
