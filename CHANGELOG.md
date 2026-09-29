@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.7](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.7) (2026-09-29)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.6...v2.1.7)
+
+**Merged pull requests:**
+
+- fix: ajustar configuración de publicación para soportar namespaces [\#20](https://github.com/bancolombia/ecs-logs-java/pull/20) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.6](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.6) (2026-09-29)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.5...v2.1.6)
