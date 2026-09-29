@@ -143,14 +143,46 @@ subprojects {
     }
 
     //Publishing configuration
+    // Coordenadas en Maven Central: com.github.bancolombia (artefacto real) y
+    // co.com.bancolombia (relocation hacia la publica, para consumidores del banco).
+    def publicGroupId = 'com.github.bancolombia'
+    def legacyGroupId = 'co.com.bancolombia'
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
 
-                groupId = groupId
+                groupId = publicGroupId
                 artifactId = project.name
                 version =  project.findProperty("version") ?: "0.0.0"
+
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('description', artifactDescription)
+                    root.appendNode('name', project.name)
+                    root.appendNode('url', 'https://github.com/bancolombia/ecs-logs-java')
+                    root.children().last() + pomConfig
+                }
+            }
+            // POM de relocation: los consumidores que siguen declarando
+            // co.com.bancolombia:ecs-* resuelven automaticamente com.github.bancolombia:ecs-*
+            mavenJavaLegacy(MavenPublication) {
+                groupId = legacyGroupId
+                artifactId = project.name
+                version =  project.findProperty("version") ?: "0.0.0"
+
+                pom {
+                    packaging = 'pom'
+                    distributionManagement {
+                        relocation {
+                            groupId = publicGroupId
+                            artifactId = project.name
+                            version = project.findProperty("version") ?: "0.0.0"
+                            message = "Movido a ${publicGroupId}:${project.name}"
+                        }
+                    }
+                }
 
                 pom.withXml {
                     def root = asNode()
@@ -171,6 +203,7 @@ subprojects {
         signing {
             useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
             sign publishing.publications.mavenJava
+            sign publishing.publications.mavenJavaLegacy
         }
     } else {
         logger.lifecycle("Firma omitida: No se encontraron las variables de entorno o propiedades necesarias.")
