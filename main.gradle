@@ -143,6 +143,7 @@ subprojects {
     }
 
     //Publishing configuration
+
     def publicGroupId = 'com.github.bancolombia'
     def legacyGroupId = 'co.com.bancolombia'
 

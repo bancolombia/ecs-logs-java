@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.6](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.6) (2026-09-29)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.5...v2.1.6)
+
+**Merged pull requests:**
+
+- fix: add publish artifactory Banco [\#19](https://github.com/bancolombia/ecs-logs-java/pull/19) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.5](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.5) (2026-09-29)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.4...v2.1.5)
