@@ -193,6 +193,13 @@ subprojects {
         }
     }
 
+    // Cada staging repo de Central esta atado a un namespace, asi que se publica en dos corridas:
+    // por defecto com.github.bancolombia (jar real); con -PpublishLegacy=true solo co.com.bancolombia (relocation).
+    def publishLegacy = project.hasProperty('publishLegacy')
+    tasks.withType(PublishToMavenRepository).configureEach {
+        onlyIf { publication.name == (publishLegacy ? 'mavenJavaLegacy' : 'mavenJava') }
+    }
+
     def signingKeyId = System.getenv("SIGNING_KEY_ID") ?: project.findProperty("signing.keyId")
     def signingKey = System.getenv("SIGNING_KEY_FILE") ?: project.findProperty("signing.key")
     def signingPassword = System.getenv("SIGNING_PASSWORD") ?: project.findProperty("signing.password")
