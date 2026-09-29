@@ -1,5 +1,21 @@
 # Changelog
 
+## [v2.1.4](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.4) (2026-09-21)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.3...v2.1.4)
+
+**Merged pull requests:**
+
+- fix: update dependencies for vulns [\#17](https://github.com/bancolombia/ecs-logs-java/pull/17) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
+## [v2.1.3](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.3) (2026-09-04)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.2...v2.1.3)
+
+**Merged pull requests:**
+
+- fix: A bug ecs [\#16](https://github.com/bancolombia/ecs-logs-java/pull/16) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.2](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.2) (2026-09-02)
 
 [Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.1...v2.1.2)
