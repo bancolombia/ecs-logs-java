@@ -165,8 +165,6 @@ subprojects {
                     root.children().last() + pomConfig
                 }
             }
-            // POM de relocation: los consumidores que siguen declarando
-            // co.com.bancolombia:ecs-* resuelven automaticamente com.github.bancolombia:ecs-*
             mavenJavaLegacy(MavenPublication) {
                 groupId = legacyGroupId
                 artifactId = project.name
