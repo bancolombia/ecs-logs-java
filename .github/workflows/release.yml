@@ -80,7 +80,6 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SECRET_MAVEN_PASSWORD }}
 
       - name: Publish co.com.bancolombia relocation to Maven Central
-        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -95,3 +94,18 @@ jobs:
           SIGNING_KEY_FILE: ${{ secrets.SIGNING_KEY_FILE }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SECRET_MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SECRET_MAVEN_PASSWORD }}
+
+      - name: Verify same version in both groups
+        shell: bash
+        run: |
+          V=${{ env.RELEASE_VERSION }}
+          for m in ecs-model ecs-core ecs-imperative ecs-reactive; do
+            ok=0
+            for i in $(seq 1 30); do
+              a=$(curl -s -o /dev/null -w "%{http_code}" https://repo1.maven.org/maven2/com/github/bancolombia/$m/$V/$m-$V.pom)
+              b=$(curl -s -o /dev/null -w "%{http_code}" https://repo1.maven.org/maven2/co/com/bancolombia/$m/$V/$m-$V.pom)
+              if [ "$a" = "200" ] && [ "$b" = "200" ]; then ok=1; break; fi
+              sleep 60
+            done
+            [ "$ok" = "1" ] || { echo "Falta $m $V en alguno de los grupos"; exit 1; }
+          done
