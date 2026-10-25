@@ -35,6 +35,7 @@ plugins {
     id 'jacoco'
 }
 nexusPublishing {
+    packageGroup.set(project.hasProperty('publishLegacy') ? 'co.com.bancolombia' : 'com.github.bancolombia')
     repositories {
         sonatype {
             nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
