@@ -1,16 +1,20 @@
 # Changelog
 
+## [v2.1.7](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.7) (2026-10-26)
+
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.6...v2.1.7)
+
+**Merged pull requests:**
+
+- fix: garantizar misma versión en com.github y co.com.bancolombia [\#24](https://github.com/bancolombia/ecs-logs-java/pull/24) ([AndreyRivera13](https://github.com/AndreyRivera13))
+
 ## [v2.1.6](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.6) (2026-10-08)
 
-[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/2.1.7...v2.1.6)
+[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.5...v2.1.6)
 
 **Merged pull requests:**
 
 - fix: unificacion libreria ecs [\#23](https://github.com/bancolombia/ecs-logs-java/pull/23) ([AndreyRivera13](https://github.com/AndreyRivera13))
-
-## [2.1.7](https://github.com/bancolombia/ecs-logs-java/tree/2.1.7) (2026-10-08)
-
-[Full Changelog](https://github.com/bancolombia/ecs-logs-java/compare/v2.1.5...2.1.7)
 
 ## [v2.1.5](https://github.com/bancolombia/ecs-logs-java/tree/v2.1.5) (2026-10-08)
 
